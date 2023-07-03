@@ -1,6 +1,9 @@
 type ImageURL = string;
 
-export type TableDataType = {
+export type BeefNoodleComment = {
+  /**
+   * 陣列的index
+   */
   key: number;
   score: number;
   storeName: string;
@@ -20,4 +23,14 @@ export type TableDataType = {
   soupDescription?: string;
   overallDescription?: string;
   wantToVisitAgain: boolean;
+};
+
+export type BeefNoodleCommentFromFirestore = Omit<
+  BeefNoodleComment,
+  "visitDate" | "key"
+> & {
+  /**
+   * firestore 取回來的 `Date` 會轉成這個格式
+   */
+  visitDate: { seconds: number; nanoseconds: number };
 };

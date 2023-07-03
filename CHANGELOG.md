@@ -1,8 +1,16 @@
 ## todo
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
-- 新增評論到 firebase database
 - 圖床，google 相簿的網址好像不行
+
+## 0.3.0 (2023-07-02)
+
+### added
+
+- 牛肉麵評論存到 firestore
+- 取得所有評論
+- 新增單則評論的 UI
+- `firebaseOptions` 的機密都寫在 `.env.local`
 
 ## 0.2.0 (2023-06-25)
 
