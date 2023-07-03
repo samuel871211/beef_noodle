@@ -2,6 +2,7 @@
 import type { AppProps } from "next/app";
 import { FirebaseOptions, initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore/lite";
+import { getStorage } from "firebase/storage";
 
 // Local application/library specific imports.
 import "../styles/globals.css";
@@ -20,10 +21,11 @@ const firebaseOptions: FirebaseOptions = {
 };
 const firebaseApp = initializeApp(firebaseOptions);
 const firestore = getFirestore(firebaseApp);
+const firebaseStorage = getStorage(firebaseApp);
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <GlobalContext.Provider value={{ firestore }}>
+    <GlobalContext.Provider value={{ firestore, firebaseStorage }}>
       <Component {...pageProps} />
     </GlobalContext.Provider>
   );

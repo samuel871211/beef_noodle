@@ -1,7 +1,15 @@
 ## todo
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
-- 圖床，google 相簿的網址好像不行
+- firebase/auth，有權限的人才能新增評論
+
+## 0.4.0 (2023-07-03)
+
+### added
+
+- 牛肉麵圖片存到 fire storage
+- 新增 Component `ImageDialogCarousel`，渲染一個開啟按鈕 + 牛肉麵圖片輪播 Dialog
+- `GlobalContext` 新增了 `firebaseStorage`
 
 ## 0.3.0 (2023-07-02)
 

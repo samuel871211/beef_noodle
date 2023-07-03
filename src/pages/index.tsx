@@ -10,18 +10,13 @@ import {
   Table,
   Button,
   Modal,
-  Carousel,
   FloatButton,
   Input,
   DatePicker,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import {
-  UploadOutlined,
-  RightOutlined,
-  LeftOutlined,
-  PlusOutlined,
-} from "@ant-design/icons";
+import { UploadOutlined, PlusOutlined } from "@ant-design/icons";
+import { getDownloadURL, list, ref } from "firebase/storage";
 import { getDocs, updateDoc, addDoc } from "firebase/firestore/lite";
 
 // Local application/library specific imports.
@@ -31,6 +26,7 @@ import type {
 } from "../types";
 import GlobalContext from "../contexts/GlobalContext";
 import getCollection from "../utils/getCollection";
+import ImageDialogCarousel from "../components/ImageDialogCarousel";
 
 // Stateless vars declare.
 const { Header, Content } = Layout;
@@ -40,11 +36,9 @@ const { TextArea } = Input;
 export default Home;
 
 function Home() {
-  const [imgModalOpen, toggleImgModalOpen] = useState(false);
   const [commentModalOpen, toggleCommentModalOpen] = useState(false);
-  const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [dataSource, setDataSource] = useState<BeefNoodleComment[]>([]);
-  const { firestore } = useContext(GlobalContext);
+  const { firestore, firebaseStorage } = useContext(GlobalContext);
   const columns: ColumnsType<BeefNoodleComment> = [
     {
       title: "分數",
@@ -73,14 +67,7 @@ function Home() {
       title: "圖片",
       dataIndex: "images",
       render: (val: BeefNoodleComment["images"], record) => (
-        <Button
-          onClick={() => {
-            toggleImgModalOpen(true);
-            setSelectedImageIdx(record.key);
-          }}
-        >
-          看圖片
-        </Button>
+        <ImageDialogCarousel beefNoodleComment={record} />
       ),
     },
     {
@@ -187,24 +174,6 @@ function Home() {
           columns={columns}
           pagination={false}
         ></Table>
-        <Modal
-          title="牛肉麵照片"
-          open={imgModalOpen}
-          onOk={() => toggleImgModalOpen(false)}
-          onCancel={() => toggleImgModalOpen(false)}
-        >
-          <Carousel
-            arrows
-            prevArrow={<LeftOutlined />}
-            nextArrow={<RightOutlined />}
-          >
-            {dataSource[selectedImageIdx]?.images.map((imageURL) => (
-              <div key={imageURL}>
-                <img width="100%" src={imageURL} />
-              </div>
-            ))}
-          </Carousel>
-        </Modal>
         <Modal
           title="新增評論"
           open={commentModalOpen}
