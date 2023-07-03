@@ -27,6 +27,7 @@ import type {
 import GlobalContext from "../contexts/GlobalContext";
 import getCollection from "../utils/getCollection";
 import ImageDialogCarousel from "../components/ImageDialogCarousel";
+import Head from "next/head";
 
 // Stateless vars declare.
 const { Header, Content } = Layout;
@@ -150,6 +151,33 @@ function Home() {
   }, []);
   return (
     <>
+      <Head>
+        <title>雙北牛肉麵評論</title>
+        <meta name="description" content="喜歡吃牛肉麵嗎？那絕對不能錯過這個" />
+        <meta name="title" content="雙北牛肉麵評論" />
+        <meta property="og:title" content="雙北牛肉麵評論" />
+        <meta
+          property="og:url"
+          content="https://nmdap.udn.com.tw/test/beef_noodle/"
+        />
+        <meta
+          property="og:image"
+          content="https://firebasestorage.googleapis.com/v0/b/beef-noodle-fe137.appspot.com/o/20230625%2F20230625_124910.jpg?alt=media&token=392f3e72-26d7-4e96-9d42-022ee0c08249"
+        />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta
+          property="og:description"
+          content="喜歡吃牛肉麵嗎？那絕對不能錯過這個"
+        />
+        <meta property="og:site_name" content="雙北牛肉麵評論" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="雙北牛肉麵評論" />
+        <meta
+          name="twitter:description"
+          content="喜歡吃牛肉麵嗎？那絕對不能錯過這個"
+        />
+      </Head>
       <Header>
         <Title
           level={1}
