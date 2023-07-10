@@ -3,6 +3,7 @@ import type { AppProps } from "next/app";
 import { FirebaseOptions, initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore/lite";
 import { getStorage } from "firebase/storage";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // Local application/library specific imports.
 import "../styles/globals.css";
@@ -22,10 +23,17 @@ const firebaseOptions: FirebaseOptions = {
 const firebaseApp = initializeApp(firebaseOptions);
 const firestore = getFirestore(firebaseApp);
 const firebaseStorage = getStorage(firebaseApp);
+const auth = getAuth();
+const googleAuthProvider = new GoogleAuthProvider();
+googleAuthProvider.addScope(
+  "https://www.googleapis.com/auth/firebase.readonly"
+);
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <GlobalContext.Provider value={{ firestore, firebaseStorage }}>
+    <GlobalContext.Provider
+      value={{ firestore, firebaseStorage, googleAuthProvider, auth }}
+    >
       <Component {...pageProps} />
     </GlobalContext.Provider>
   );

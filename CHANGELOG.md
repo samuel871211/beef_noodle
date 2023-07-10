@@ -2,6 +2,8 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 - firebase/auth，有權限的人才能新增評論
+- `signInWithPopup` 會無法 `window.close`
+- 登入之後拿到 token，然後呢？
 
 ## 0.5.0 (2023-07-03)
 

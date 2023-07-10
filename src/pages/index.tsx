@@ -18,6 +18,13 @@ import type { ColumnsType } from "antd/es/table";
 import { UploadOutlined, PlusOutlined } from "@ant-design/icons";
 import { getDownloadURL, list, ref } from "firebase/storage";
 import { getDocs, updateDoc, addDoc } from "firebase/firestore/lite";
+import {
+  signInWithPopup,
+  signInWithRedirect,
+  GoogleAuthProvider,
+  getAdditionalUserInfo,
+  getRedirectResult,
+} from "firebase/auth";
 
 // Local application/library specific imports.
 import type {
@@ -39,7 +46,8 @@ export default Home;
 function Home() {
   const [commentModalOpen, toggleCommentModalOpen] = useState(false);
   const [dataSource, setDataSource] = useState<BeefNoodleComment[]>([]);
-  const { firestore, firebaseStorage } = useContext(GlobalContext);
+  const { firestore, firebaseStorage, googleAuthProvider, auth } =
+    useContext(GlobalContext);
   const columns: ColumnsType<BeefNoodleComment> = [
     {
       title: "分數",
@@ -128,6 +136,21 @@ function Home() {
       sorter: (a, b) => (a.wantToVisitAgain ? 1 : -1),
     },
   ];
+  useEffect(() => {
+    // signInWithRedirect(auth, googleAuthProvider)
+    signInWithPopup(auth, googleAuthProvider)
+      .then((userCredential) => {
+        const oAuthCredential =
+          GoogleAuthProvider.credentialFromResult(userCredential);
+        if (!oAuthCredential) return;
+        const additionalUserInfo = getAdditionalUserInfo(userCredential);
+        console.log({ oAuthCredential, additionalUserInfo });
+      })
+      .catch((error) => {
+        const oAuthCredential = GoogleAuthProvider.credentialFromError(error);
+        console.log({ error, oAuthCredential });
+      });
+  }, []);
   useEffect(function getAllComments() {
     const collectionRef = getCollection<BeefNoodleCommentFromFirestore>(
       firestore,
