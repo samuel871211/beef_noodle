@@ -3,6 +3,7 @@ import type { AppProps } from "next/app";
 import { FirebaseOptions, initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore/lite";
 import { getStorage } from "firebase/storage";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // Local application/library specific imports.
 import "../styles/globals.css";
@@ -28,10 +29,14 @@ const collectionRef = getCollection<BeefNoodleCommentFromFirestore>(
   "beefNoodleComments"
 );
 const firebaseStorage = getStorage(firebaseApp);
+const auth = getAuth();
+const googleAuthProvider = new GoogleAuthProvider();
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <GlobalContext.Provider value={{ collectionRef, firebaseStorage }}>
+    <GlobalContext.Provider
+      value={{ collectionRef, firebaseStorage, googleAuthProvider, auth }}
+    >
       <Component {...pageProps} />
     </GlobalContext.Provider>
   );

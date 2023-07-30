@@ -14,11 +14,21 @@ import {
   FloatButton,
   Input,
   DatePicker,
+  notification,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { UploadOutlined, PlusOutlined } from "@ant-design/icons";
 import { getDocs, addDoc, Timestamp } from "firebase/firestore/lite";
 import dayjs from "dayjs";
+// import { getDownloadURL, list, ref } from "firebase/storage";
+import // signInWithPopup,
+// signInWithRedirect,
+// GoogleAuthProvider,
+// getAdditionalUserInfo,
+// getRedirectResult,
+// signOut,
+"firebase/auth";
+// import { FirebaseError } from "firebase/app";
 
 // Local application/library specific imports.
 import setVh from "../utils/setVh";
@@ -31,6 +41,7 @@ import GlobalContext from "../contexts/GlobalContext";
 import ImageDialogCarousel from "../components/ImageDialogCarousel";
 
 // Stateless vars declare.
+const ADD_DOC_FAILED = "ADD_DOC_FAILED" as const;
 const today = dayjs();
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -41,10 +52,11 @@ export default Home;
 function Home() {
   const [commentModalOpen, toggleCommentModalOpen] = useState(false);
   const [dataSource, setDataSource] = useState<BeefNoodleComment[]>([]);
-  const { collectionRef } = useContext(GlobalContext);
   const [beefCommentForm] = Form.useForm();
   const [visitDate, setVisitDate] = useState(today);
   const [addCommentLoading, toggleAddCommentLoading] = useState(false);
+  const { collectionRef, auth, googleAuthProvider } = useContext(GlobalContext);
+  const [notificationIns, Notification] = notification.useNotification();
   const columns: ColumnsType<BeefNoodleComment> = [
     {
       title: "分數",
@@ -213,7 +225,17 @@ function Home() {
     if (!comment.soupDescription) delete comment.soupDescription;
     if (!comment.overallDescription) delete comment.overallDescription;
     toggleAddCommentLoading(true);
-    await addDoc(collectionRef, comment);
+    const addDocResult = await addDoc(collectionRef, comment)
+      .then((res) => res)
+      .catch((err) => {
+        if (err?.code === "permission-denied")
+          notificationIns.error({ message: "很抱歉，您無權限新增評論" });
+        else notification.error({ message: "新增評論失敗" });
+        return ADD_DOC_FAILED;
+      });
+    toggleAddCommentLoading(false);
+    toggleCommentModalOpen(false);
+    if (addDocResult === ADD_DOC_FAILED) return;
     setDataSource((prev) => [
       ...prev,
       {
@@ -223,9 +245,44 @@ function Home() {
       },
     ]);
     beefCommentForm.resetFields();
-    toggleAddCommentLoading(false);
-    toggleCommentModalOpen(false);
   }
+  useEffect(() => {
+    // signOut(auth).then(none => console.log('sign out'));
+    // if (sessionStorage.getItem('accessToken')) return;
+    // getRedirectResult(auth)
+    //   .then(async (userCredential) => {
+    //     if (!userCredential) return;
+    //     console.log(userCredential);
+    //     const idToken = await userCredential.user.getIdToken();
+    //     const idTokenResult = await userCredential.user.getIdTokenResult();
+    //     console.log(idToken, idTokenResult);
+    //   })
+    //   .catch(err => console.log(err));
+    // signInWithRedirect(auth, googleAuthProvider)
+    //   .then(async (never) => {
+    //     const userCredential = await getRedirectResult(auth);
+    //     if (!userCredential) return;
+    //     const oAuthCredential = GoogleAuthProvider.credentialFromResult(userCredential);
+    //     if (!oAuthCredential) return;
+    //     if (!oAuthCredential.accessToken) return;
+    //     console.log(oAuthCredential);
+    //     sessionStorage.setItem('accessToken', oAuthCredential.accessToken);
+    //   })
+    //   .catch(err => console.log(err));
+    // getRedirectResult
+    // signInWithPopup(auth, googleAuthProvider)
+    //   .then((userCredential) => {
+    //     const oAuthCredential =
+    //       GoogleAuthProvider.credentialFromResult(userCredential);
+    //     if (!oAuthCredential) return;
+    //     const additionalUserInfo = getAdditionalUserInfo(userCredential);
+    //     console.log({ oAuthCredential, additionalUserInfo });
+    //   })
+    //   .catch((error) => {
+    //     const oAuthCredential = GoogleAuthProvider.credentialFromError(error);
+    //     console.log({ error, oAuthCredential });
+    //   });
+  }, []);
   useEffect(function getAllComments() {
     getDocs(collectionRef)
       .then((querySnapshot) => {
@@ -411,6 +468,7 @@ function Home() {
           onClick={() => toggleCommentModalOpen(true)}
         ></FloatButton>
       </Content>
+      {Notification}
     </>
   );
 }

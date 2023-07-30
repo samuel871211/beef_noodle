@@ -1,7 +1,16 @@
 ## todo
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
-- firebase/auth，有權限的人才能新增評論
+
+## 0.8.0 (2023-07-30)
+
+### added
+
+- Global Context 新增 `googleAuthProvider`、`auth`
+
+### style
+
+- 新增評論失敗，會跳出通知
 
 ## 0.7.2 (2023-07-30)
 
