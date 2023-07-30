@@ -29,7 +29,7 @@ function ImageDialogCarousel(props: { beefNoodleComment: BeefNoodleComment }) {
         >
           {beefNoodleComment.images.map((imageURL) => (
             <div key={imageURL}>
-              <img width="100%" src={imageURL} />
+              <img width="100%" src={imageURL} alt="" />
             </div>
           ))}
         </Carousel>

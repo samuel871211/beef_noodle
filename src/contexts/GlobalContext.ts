@@ -1,9 +1,10 @@
 import { createContext } from "react";
-import { Firestore } from "firebase/firestore/lite";
+import { CollectionReference } from "firebase/firestore/lite";
 import { FirebaseStorage } from "firebase/storage";
+import { BeefNoodleCommentFromFirestore } from "../types";
 
 const GlobalContext = createContext({
-  firestore: {} as Firestore,
+  collectionRef: {} as CollectionReference<BeefNoodleCommentFromFirestore>,
   firebaseStorage: {} as FirebaseStorage,
 });
 

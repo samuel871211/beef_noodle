@@ -7,6 +7,8 @@ import { getStorage } from "firebase/storage";
 // Local application/library specific imports.
 import "../styles/globals.css";
 import GlobalContext from "../contexts/GlobalContext";
+import getCollection from "../utils/getCollection";
+import { BeefNoodleCommentFromFirestore } from "../types";
 
 // Stateless vars declare.
 const firebaseOptions: FirebaseOptions = {
@@ -21,11 +23,15 @@ const firebaseOptions: FirebaseOptions = {
 };
 const firebaseApp = initializeApp(firebaseOptions);
 const firestore = getFirestore(firebaseApp);
+const collectionRef = getCollection<BeefNoodleCommentFromFirestore>(
+  firestore,
+  "beefNoodleComments"
+);
 const firebaseStorage = getStorage(firebaseApp);
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <GlobalContext.Provider value={{ firestore, firebaseStorage }}>
+    <GlobalContext.Provider value={{ collectionRef, firebaseStorage }}>
       <Component {...pageProps} />
     </GlobalContext.Provider>
   );

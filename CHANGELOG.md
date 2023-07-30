@@ -2,6 +2,21 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 - firebase/auth，有權限的人才能新增評論
+- 07-07 以後的牛肉麵照片還沒更新
+
+## 0.6.0 (2023-07-30)
+
+### added
+
+- 新增評論功能（上傳圖片尚未完成）
+- `GlobalContext` 的 `firestore` 改成 `collectionRef`，目前只有一個 collection
+
+### style
+
+- 牛肉麵表格，column 順序調整，牛筋、牛肚放到後面
+- 牛肉麵表格，pagination 顯示
+- 牛肉麵表格，全屏高度（手機應該會超過，因為是用 100vh）
+- 牛肉麵表格，分數的字體會放大
 
 ## 0.5.0 (2023-07-03)
 

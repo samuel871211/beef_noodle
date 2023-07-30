@@ -1,8 +1,9 @@
 type ImageURL = string;
+import { Timestamp } from "firebase/firestore/lite";
 
 export type BeefNoodleComment = {
   /**
-   * 陣列的index
+   * 陣列的index，從DB取回comments的時候才會產生
    */
   key: number;
   score: number;
@@ -29,8 +30,5 @@ export type BeefNoodleCommentFromFirestore = Omit<
   BeefNoodleComment,
   "visitDate" | "key"
 > & {
-  /**
-   * firestore 取回來的 `Date` 會轉成這個格式
-   */
-  visitDate: { seconds: number; nanoseconds: number };
+  visitDate: Timestamp;
 };
