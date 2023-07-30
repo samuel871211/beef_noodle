@@ -27,7 +27,7 @@
     "eslint-config-prettier": "8.8.0",
     "eslint-plugin-react": "7.32.2",
     "firebase": "9.22.2",
-    "firebase-tools": "^12.4.0",
+    "firebase-tools": "^12.4.6",
     "husky": "8.0.3",
     "lint-staged": "13.2.2",
     "next": "13.4.7",
