@@ -1,3 +1,6 @@
+:root {
+  --vh: 1vh;
+}
 html,
 body,
 #__next {

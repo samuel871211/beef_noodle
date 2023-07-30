@@ -2,7 +2,13 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 - firebase/auth，有權限的人才能新增評論
-- 07-07 以後的牛肉麵照片還沒更新
+
+## 0.7.2 (2023-07-30)
+
+### style
+
+- 100vh 改成根據 `window.innerHeight`
+- table layout 固定，每個欄位的寬度都預先定義好
 
 ## 0.7.1 (2023-07-30)
 

@@ -8,9 +8,9 @@
   white-space: nowrap;
 }
 .scoreTCell {
+  display: block;
   font-size: 24px;
-  padding-left: 16px;
-  padding-right: 16px;
+  text-align: center;
 }
 .booleanTCell {
   font-size: 24px;

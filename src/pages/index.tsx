@@ -21,6 +21,7 @@ import { getDocs, addDoc, Timestamp } from "firebase/firestore/lite";
 import dayjs from "dayjs";
 
 // Local application/library specific imports.
+import setVh from "../utils/setVh";
 import styles from "./index.module.css";
 import type {
   BeefNoodleComment,
@@ -48,6 +49,7 @@ function Home() {
     {
       title: "分數",
       dataIndex: "score",
+      width: 100,
       sorter: (a, b) => a.score - b.score,
       render: (val: BeefNoodleComment["score"]) => (
         <b className={styles.scoreTCell} style={{ color: "red" }}>
@@ -58,10 +60,12 @@ function Home() {
     {
       title: "店名",
       dataIndex: "storeName",
+      width: 150,
     },
     {
       title: "造訪日期",
       dataIndex: "visitDate",
+      width: 100,
       defaultSortOrder: "ascend",
       sorter: (a, b) =>
         Date.parse(a.visitDate.toISOString()) -
@@ -71,15 +75,18 @@ function Home() {
     {
       title: "品項",
       dataIndex: "itemName",
+      width: 100,
     },
     {
       title: "價格",
       dataIndex: "itemPrice",
+      width: 100,
       render: (val: BeefNoodleComment["itemPrice"]) => `$${val}`,
     },
     {
       title: "圖片",
       dataIndex: "images",
+      width: 110,
       render: (val: BeefNoodleComment["images"], record) => (
         <ImageDialogCarousel beefNoodleComment={record} />
       ),
@@ -87,6 +94,7 @@ function Home() {
     {
       title: "麵條分數",
       dataIndex: "noodleScore",
+      width: 100,
       sorter: (a, b) => (a.noodleScore || 0) - (b.noodleScore || 0),
       render: (val: BeefNoodleComment["noodleScore"]) => (
         <b className={styles.scoreTCell}>{val}</b>
@@ -95,10 +103,12 @@ function Home() {
     {
       title: "麵條描述",
       dataIndex: "noodleDescription",
+      width: 300,
     },
     {
       title: "牛肉分數",
       dataIndex: "beefScore",
+      width: 100,
       sorter: (a, b) => (a.beefScore || 0) - (b.beefScore || 0),
       render: (val: BeefNoodleComment["beefScore"]) => (
         <b className={styles.scoreTCell}>{val}</b>
@@ -107,10 +117,12 @@ function Home() {
     {
       title: "牛肉描述",
       dataIndex: "beefDescription",
+      width: 300,
     },
     {
       title: "湯頭分數",
       dataIndex: "soupScore",
+      width: 100,
       sorter: (a, b) => (a.soupScore || 0) - (b.soupScore || 0),
       render: (val: BeefNoodleComment["soupScore"]) => (
         <b className={styles.scoreTCell}>{val}</b>
@@ -119,14 +131,17 @@ function Home() {
     {
       title: "湯頭描述",
       dataIndex: "soupDescription",
+      width: 300,
     },
     {
       title: "整體描述",
       dataIndex: "overallDescription",
+      width: 300,
     },
     {
       title: "再次造訪",
       dataIndex: "wantToVisitAgain",
+      width: 100,
       render: (val: BeefNoodleComment["wantToVisitAgain"]) => (
         <b className={styles.booleanTCell}>{val ? "是" : "否"}</b>
       ),
@@ -135,6 +150,7 @@ function Home() {
     {
       title: "牛筋分數",
       dataIndex: "tendonScore",
+      width: 100,
       sorter: (a, b) => (a.tendonScore || 0) - (b.tendonScore || 0),
       render: (val: BeefNoodleComment["tendonScore"]) => (
         <b className={styles.scoreTCell}>{val}</b>
@@ -143,10 +159,12 @@ function Home() {
     {
       title: "牛筋描述",
       dataIndex: "tendonDescription",
+      width: 300,
     },
     {
       title: "牛肚分數",
       dataIndex: "tripeScore",
+      width: 100,
       sorter: (a, b) => (a.tripeScore || 0) - (b.tripeScore || 0),
       render: (val: BeefNoodleComment["tripeScore"]) => (
         <b className={styles.scoreTCell}>{val}</b>
@@ -155,6 +173,7 @@ function Home() {
     {
       title: "牛肚描述",
       dataIndex: "tripeDescription",
+      width: 300,
     },
   ];
   /**
@@ -224,6 +243,11 @@ function Home() {
       })
       .catch((e) => console.log(e));
   }, []);
+  useEffect(() => {
+    setVh();
+    addEventListener("resize", setVh);
+    return () => removeEventListener("resize", setVh);
+  }, []);
   return (
     <>
       <Head>
@@ -273,7 +297,7 @@ function Home() {
           bordered
           className={styles.table}
           // header 64px + pagination 64px + thead 55px + 1px
-          scroll={{ x: true, y: "calc(100vh - 64px - 64px - 55px - 1px)" }}
+          scroll={{ y: "calc(100 * var(--vh) - 64px - 64px - 55px - 1px)" }}
           dataSource={dataSource}
           columns={columns}
         ></Table>
