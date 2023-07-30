@@ -50,7 +50,9 @@ function Home() {
       dataIndex: "score",
       sorter: (a, b) => a.score - b.score,
       render: (val: BeefNoodleComment["score"]) => (
-        <b className={styles.scoreTCell}>{val}</b>
+        <b className={styles.scoreTCell} style={{ color: "red" }}>
+          {val}
+        </b>
       ),
     },
     {
