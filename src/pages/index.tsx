@@ -77,7 +77,7 @@ function Home() {
     {
       title: "造訪日期",
       dataIndex: "visitDate",
-      width: 100,
+      width: 120,
       defaultSortOrder: "ascend",
       sorter: (a, b) =>
         Date.parse(a.visitDate.toISOString()) -
@@ -98,7 +98,7 @@ function Home() {
     {
       title: "圖片",
       dataIndex: "images",
-      width: 110,
+      width: 120,
       render: (val: BeefNoodleComment["images"], record) => (
         <ImageDialogCarousel beefNoodleComment={record} />
       ),
@@ -352,11 +352,11 @@ function Home() {
       <Content>
         <Table
           bordered
+          tableLayout="fixed"
           className={styles.table}
-          // header 64px + pagination 64px + thead 55px + 1px
-          scroll={{ y: "calc(100 * var(--vh) - 64px - 64px - 55px - 1px)" }}
           dataSource={dataSource}
           columns={columns}
+          pagination={false}
         ></Table>
         <Modal
           title="新增評論"

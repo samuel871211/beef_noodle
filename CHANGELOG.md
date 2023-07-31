@@ -2,6 +2,13 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.8.1 (2023-07-31)
+
+### style
+
+- table 排版在 ios 壞掉的 bug 修正
+- 新增 favicon.ico
+
 ## 0.8.0 (2023-07-30)
 
 ### added
