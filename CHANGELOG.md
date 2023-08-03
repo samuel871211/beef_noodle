@@ -2,6 +2,12 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.9.0 (2023-08-03)
+
+### added
+
+- 登入登出功能（目前只有我本人登入才能撰寫評論）
+
 ## 0.8.1 (2023-07-31)
 
 ### style

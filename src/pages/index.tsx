@@ -20,15 +20,7 @@ import type { ColumnsType } from "antd/es/table";
 import { UploadOutlined, PlusOutlined } from "@ant-design/icons";
 import { getDocs, addDoc, Timestamp } from "firebase/firestore/lite";
 import dayjs from "dayjs";
-// import { getDownloadURL, list, ref } from "firebase/storage";
-import // signInWithPopup,
-// signInWithRedirect,
-// GoogleAuthProvider,
-// getAdditionalUserInfo,
-// getRedirectResult,
-// signOut,
-"firebase/auth";
-// import { FirebaseError } from "firebase/app";
+import { signInWithRedirect, signOut } from "firebase/auth";
 
 // Local application/library specific imports.
 import setVh from "../utils/setVh";
@@ -53,6 +45,7 @@ function Home() {
   const [commentModalOpen, toggleCommentModalOpen] = useState(false);
   const [dataSource, setDataSource] = useState<BeefNoodleComment[]>([]);
   const [beefCommentForm] = Form.useForm();
+  const [isLogged, toggleIsLogged] = useState(false);
   const [visitDate, setVisitDate] = useState(today);
   const [addCommentLoading, toggleAddCommentLoading] = useState(false);
   const { collectionRef, auth, googleAuthProvider } = useContext(GlobalContext);
@@ -226,7 +219,9 @@ function Home() {
     if (!comment.overallDescription) delete comment.overallDescription;
     toggleAddCommentLoading(true);
     const addDocResult = await addDoc(collectionRef, comment)
-      .then((res) => res)
+      .then((res) => {
+        notification.success({ message: "新增評論成功" });
+      })
       .catch((err) => {
         if (err?.code === "permission-denied")
           notificationIns.error({ message: "很抱歉，您無權限新增評論" });
@@ -246,42 +241,13 @@ function Home() {
     ]);
     beefCommentForm.resetFields();
   }
-  useEffect(() => {
-    // signOut(auth).then(none => console.log('sign out'));
-    // if (sessionStorage.getItem('accessToken')) return;
-    // getRedirectResult(auth)
-    //   .then(async (userCredential) => {
-    //     if (!userCredential) return;
-    //     console.log(userCredential);
-    //     const idToken = await userCredential.user.getIdToken();
-    //     const idTokenResult = await userCredential.user.getIdTokenResult();
-    //     console.log(idToken, idTokenResult);
-    //   })
-    //   .catch(err => console.log(err));
-    // signInWithRedirect(auth, googleAuthProvider)
-    //   .then(async (never) => {
-    //     const userCredential = await getRedirectResult(auth);
-    //     if (!userCredential) return;
-    //     const oAuthCredential = GoogleAuthProvider.credentialFromResult(userCredential);
-    //     if (!oAuthCredential) return;
-    //     if (!oAuthCredential.accessToken) return;
-    //     console.log(oAuthCredential);
-    //     sessionStorage.setItem('accessToken', oAuthCredential.accessToken);
-    //   })
-    //   .catch(err => console.log(err));
-    // getRedirectResult
-    // signInWithPopup(auth, googleAuthProvider)
-    //   .then((userCredential) => {
-    //     const oAuthCredential =
-    //       GoogleAuthProvider.credentialFromResult(userCredential);
-    //     if (!oAuthCredential) return;
-    //     const additionalUserInfo = getAdditionalUserInfo(userCredential);
-    //     console.log({ oAuthCredential, additionalUserInfo });
-    //   })
-    //   .catch((error) => {
-    //     const oAuthCredential = GoogleAuthProvider.credentialFromError(error);
-    //     console.log({ error, oAuthCredential });
-    //   });
+  useEffect(function addAuthStateObserver() {
+    auth.onAuthStateChanged((user) => toggleIsLogged(Boolean(user)));
+  }, []);
+  useEffect(function addResizeEvtHandler() {
+    setVh();
+    addEventListener("resize", setVh);
+    return () => removeEventListener("resize", setVh);
   }, []);
   useEffect(function getAllComments() {
     getDocs(collectionRef)
@@ -300,16 +266,14 @@ function Home() {
       })
       .catch((e) => console.log(e));
   }, []);
-  useEffect(() => {
-    setVh();
-    addEventListener("resize", setVh);
-    return () => removeEventListener("resize", setVh);
-  }, []);
   return (
     <>
       <Head>
         <title>雙北牛肉麵評論</title>
-        <meta name="description" content="喜歡吃牛肉麵嗎？那絕對不能錯過這個" />
+        <meta
+          name="description"
+          content="喜歡吃牛肉麵嗎？那絕對不能錯過這個網站"
+        />
         <meta name="title" content="雙北牛肉麵評論" />
         <meta property="og:title" content="雙北牛肉麵評論" />
         <meta
@@ -334,7 +298,7 @@ function Home() {
           content="喜歡吃牛肉麵嗎？那絕對不能錯過這個"
         />
       </Head>
-      <Header>
+      <Header style={{ position: "relative" }}>
         <Title
           level={1}
           style={{
@@ -348,6 +312,22 @@ function Home() {
         >
           雙北牛肉麵評分
         </Title>
+        <Button
+          type="primary"
+          style={{
+            position: "absolute",
+            top: "50%",
+            transform: "translateY(-50%)",
+            right: "25px",
+          }}
+          onClick={() => {
+            isLogged
+              ? signOut(auth)
+              : signInWithRedirect(auth, googleAuthProvider);
+          }}
+        >
+          {isLogged ? "登出" : "Google 登入"}
+        </Button>
       </Header>
       <Content>
         <Table
@@ -460,13 +440,15 @@ function Home() {
             </Form.Item>
           </Form>
         </Modal>
-        <FloatButton
-          icon={<PlusOutlined />}
-          tooltip="新增評論"
-          type="primary"
-          style={{ left: "24px", bottom: "16px" }}
-          onClick={() => toggleCommentModalOpen(true)}
-        ></FloatButton>
+        {isLogged && (
+          <FloatButton
+            icon={<PlusOutlined />}
+            tooltip="新增評論"
+            type="primary"
+            style={{ left: "24px", bottom: "16px" }}
+            onClick={() => toggleCommentModalOpen(true)}
+          ></FloatButton>
+        )}
       </Content>
       {Notification}
     </>
