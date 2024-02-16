@@ -2,6 +2,14 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.10.0 (2024-02-16)
+
+### added
+
+- 添加 `beforeunload event`，避免尚未上傳評論就離開網頁
+- 上傳圖片功能，並且改成可上傳多張圖片
+- 表單驗證
+
 ## 0.9.0 (2023-08-03)
 
 ### added

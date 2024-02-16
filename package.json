@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "npx husky install",
-    "deploy": "npx firebase deploy"
+    "deploy": "npm run build && npx firebase deploy"
   },
   "lint-staged": {
     "*.{ts,tsx,md,css}": [

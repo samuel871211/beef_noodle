@@ -1,32 +1,42 @@
 type ImageURL = string;
 import { Timestamp } from "firebase/firestore/lite";
+import dayjs from "dayjs";
+import { UploadProps } from "antd";
 
 export type BeefNoodleComment = {
   /**
    * 陣列的index，從DB取回comments的時候才會產生
    */
   key: number;
-  score: number;
   storeName: string;
+  score: number;
   visitDate: Date;
   itemName: string;
   itemPrice: number;
-  images: ImageURL[];
+  wantToVisitAgain: boolean;
   noodleScore?: number;
   noodleDescription?: string;
+  soupScore?: number;
+  soupDescription?: string;
   beefScore?: number;
   beefDescription?: string;
   tendonScore?: number;
   tendonDescription?: string;
   tripeScore?: number;
   tripeDescription?: string;
-  soupScore?: number;
-  soupDescription?: string;
+  images: ImageURL[];
   overallDescription?: string;
-  wantToVisitAgain: boolean;
 };
 
-export type BeefNoodleCommentFromFirestore = Omit<
+export type BeefNoodleCommentForm = Omit<
+  BeefNoodleComment,
+  "visitDate" | "key" | "images"
+> & {
+  visitDate: dayjs.Dayjs;
+  images: NonNullable<UploadProps["fileList"]>;
+};
+
+export type BeefNoodleCommentFirestore = Omit<
   BeefNoodleComment,
   "visitDate" | "key"
 > & {

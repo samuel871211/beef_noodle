@@ -15,9 +15,11 @@ import {
   Input,
   DatePicker,
   notification,
+  type UploadProps,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { UploadOutlined, PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { getDocs, addDoc, Timestamp } from "firebase/firestore/lite";
 import dayjs from "dayjs";
 import { signInWithRedirect, signOut } from "firebase/auth";
@@ -27,26 +29,36 @@ import setVh from "../utils/setVh";
 import styles from "./index.module.css";
 import type {
   BeefNoodleComment,
-  BeefNoodleCommentFromFirestore,
+  BeefNoodleCommentFirestore,
+  BeefNoodleCommentForm,
 } from "../types";
 import GlobalContext from "../contexts/GlobalContext";
 import ImageDialogCarousel from "../components/ImageDialogCarousel";
+import { Rule } from "antd/es/form";
 
 // Stateless vars declare.
-const ADD_DOC_FAILED = "ADD_DOC_FAILED" as const;
+const firebaseStorage = getStorage();
 const today = dayjs();
 const { Header, Content } = Layout;
 const { Title } = Typography;
 const { TextArea } = Input;
+const initialFileList: UploadProps["fileList"] = [];
+const storeNameRules: Rule[] = [{ required: true, message: "請輸入店名" }];
+const scoreRules: Rule[] = [{ required: true, message: "請輸入分數" }];
+const visitDateRules: Rule[] = [{ required: true, message: "請選擇日期" }];
+const itemNameRules: Rule[] = [{ required: true, message: "請輸入商品名稱" }];
+const itemPriceRules: Rule[] = [{ required: true, message: "請輸入商品價格" }];
+const wantToVisitAgainRules: Rule[] = [
+  { required: true, message: "請選擇是否再度造訪" },
+];
 
 export default Home;
 
 function Home() {
   const [commentModalOpen, toggleCommentModalOpen] = useState(false);
   const [dataSource, setDataSource] = useState<BeefNoodleComment[]>([]);
-  const [beefCommentForm] = Form.useForm();
+  const [beefNoodleCommentFormIns] = Form.useForm<BeefNoodleCommentForm>();
   const [isLogged, toggleIsLogged] = useState(false);
-  const [visitDate, setVisitDate] = useState(today);
   const [addCommentLoading, toggleAddCommentLoading] = useState(false);
   const { collectionRef, auth, googleAuthProvider } = useContext(GlobalContext);
   const [notificationIns, Notification] = notification.useNotification();
@@ -150,7 +162,7 @@ function Home() {
       render: (val: BeefNoodleComment["wantToVisitAgain"]) => (
         <b className={styles.booleanTCell}>{val ? "是" : "否"}</b>
       ),
-      sorter: (a, b) => (a.wantToVisitAgain ? 1 : -1),
+      sorter: (comment) => (comment.wantToVisitAgain ? 1 : -1),
     },
     {
       title: "牛筋分數",
@@ -181,31 +193,34 @@ function Home() {
       width: 300,
     },
   ];
-  /**
-   * @todo 照片上傳還沒弄
-   */
-  async function insertOneComment() {
-    const { getFieldValue } = beefCommentForm;
-    const comment: BeefNoodleCommentFromFirestore = {
-      score: parseInt(getFieldValue("score")),
-      storeName: String(getFieldValue("storeName")),
-      visitDate: Timestamp.fromDate(visitDate.toDate()),
-      itemName: String(getFieldValue("itemName")),
-      itemPrice: parseInt(getFieldValue("itemPrice")),
+  async function uploadImagesAndInsertComment(values: BeefNoodleCommentForm) {
+    const { visitDate, images } = values;
+    const comment: BeefNoodleCommentFirestore = {
+      ...values,
+      visitDate: Timestamp.fromMillis(visitDate.valueOf()),
       images: [],
-      wantToVisitAgain: Boolean(getFieldValue("wantToVisitAgain")),
-      noodleScore: getFieldValue("noodleScore"),
-      noodleDescription: getFieldValue("noodleDescription"),
-      beefScore: getFieldValue("beefScore"),
-      beefDescription: getFieldValue("beefDescription"),
-      tendonScore: getFieldValue("tendonScore"),
-      tendonDescription: getFieldValue("tendonDescription"),
-      tripeScore: getFieldValue("tripeScore"),
-      tripeDescription: getFieldValue("tripeDescription"),
-      soupScore: getFieldValue("soupScore"),
-      soupDescription: getFieldValue("soupDescription"),
-      overallDescription: getFieldValue("overallDescription"),
     };
+    const year = visitDate.year();
+    const month = String(visitDate.month() + 1).padStart(2, "0");
+    const date = String(visitDate.date()).padStart(2, "0");
+    const folderName = `${year}${month}${date}`;
+    const uploadImageRequests = images.map((imageFile) => {
+      if (!imageFile.originFileObj) return false;
+      const storageRef = ref(
+        firebaseStorage,
+        `${folderName}/${imageFile.name}`
+      );
+      return uploadBytes(storageRef, imageFile.originFileObj);
+    });
+    const uploadImageResponses = await Promise.allSettled(uploadImageRequests);
+    const getImageURLRequests = uploadImageResponses.map(
+      (res) =>
+        res.status === "fulfilled" && res.value && getDownloadURL(res.value.ref)
+    );
+    const getImageURLResponses = await Promise.allSettled(getImageURLRequests);
+    comment.images = getImageURLResponses
+      .map((res) => res.status === "fulfilled" && res.value)
+      .filter((res) => typeof res === "string") as string[];
     if (!comment.noodleScore) delete comment.noodleScore;
     if (!comment.noodleDescription) delete comment.noodleDescription;
     if (!comment.beefScore) delete comment.beefScore;
@@ -217,29 +232,26 @@ function Home() {
     if (!comment.soupScore) delete comment.soupScore;
     if (!comment.soupDescription) delete comment.soupDescription;
     if (!comment.overallDescription) delete comment.overallDescription;
-    toggleAddCommentLoading(true);
-    const addDocResult = await addDoc(collectionRef, comment)
-      .then((res) => {
+    const isSuccess = await addDoc(collectionRef, comment)
+      .then(() => {
         notification.success({ message: "新增評論成功" });
+        return true;
       })
       .catch((err) => {
         if (err?.code === "permission-denied")
           notificationIns.error({ message: "很抱歉，您無權限新增評論" });
         else notification.error({ message: "新增評論失敗" });
-        return ADD_DOC_FAILED;
+        return false;
       });
-    toggleAddCommentLoading(false);
-    toggleCommentModalOpen(false);
-    if (addDocResult === ADD_DOC_FAILED) return;
-    setDataSource((prev) => [
-      ...prev,
-      {
+    if (!isSuccess) return;
+    setDataSource((prev) =>
+      prev.concat({
         ...comment,
         key: prev.length,
-        visitDate: new Date(comment.visitDate.seconds * 1000),
-      },
-    ]);
-    beefCommentForm.resetFields();
+        visitDate: comment.visitDate.toDate(),
+      })
+    );
+    beefNoodleCommentFormIns.resetFields();
   }
   useEffect(function addAuthStateObserver() {
     auth.onAuthStateChanged((user) => toggleIsLogged(Boolean(user)));
@@ -265,6 +277,14 @@ function Home() {
         setDataSource(beefNoodleComments);
       })
       .catch((e) => console.log(e));
+  }, []);
+  useEffect(function addOnBeforeUnloadEvent() {
+    function beforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      e.returnValue = "non-empty string";
+    }
+    addEventListener("beforeunload", beforeUnload);
+    return () => removeEventListener("beforeunload", beforeUnload);
   }, []);
   return (
     <>
@@ -340,84 +360,101 @@ function Home() {
         ></Table>
         <Modal
           title="新增評論"
-          open={commentModalOpen}
           footer={null}
+          open={commentModalOpen}
           cancelButtonProps={{ disabled: addCommentLoading }}
           onCancel={() => toggleCommentModalOpen(false)}
         >
           <Form
-            form={beefCommentForm}
+            form={beefNoodleCommentFormIns}
             labelCol={{ span: 4 }}
             wrapperCol={{ span: 20 }}
-            className={styles.beefCommentForm}
+            className={styles.beefNoodleCommentFormIns}
+            onFinish={(values) => {
+              toggleAddCommentLoading(true);
+              uploadImagesAndInsertComment(values).finally(() => {
+                toggleAddCommentLoading(false);
+                toggleCommentModalOpen(false);
+              });
+            }}
           >
-            <Form.Item required label="店名：" name="storeName">
-              <Input required></Input>
+            <Form.Item label="店名" name="storeName" rules={storeNameRules}>
+              <Input></Input>
             </Form.Item>
-            <Form.Item required label="分數：" name="score">
-              <InputNumber
-                required
-                controls={false}
-                min={0}
-                max={100}
-              ></InputNumber>
+            <Form.Item label="分數" name="score" rules={scoreRules}>
+              <InputNumber controls={false} min={0} max={100}></InputNumber>
             </Form.Item>
-            <Form.Item required label="造訪日期：">
-              <DatePicker
-                aria-required
-                allowClear={false}
-                value={visitDate}
-                onChange={(day) => day && setVisitDate(day)}
-              ></DatePicker>
+            <Form.Item
+              label="造訪日期"
+              name="visitDate"
+              initialValue={today}
+              rules={visitDateRules}
+            >
+              <DatePicker allowClear={false}></DatePicker>
             </Form.Item>
-            <Form.Item required label="品項：" name="itemName">
-              <Input required></Input>
+            <Form.Item label="品項" name="itemName" rules={itemNameRules}>
+              <Input></Input>
             </Form.Item>
-            <Form.Item required label="價格：" name="itemPrice">
-              <InputNumber required controls={false}></InputNumber>
+            <Form.Item label="價格" name="itemPrice" rules={itemPriceRules}>
+              <InputNumber controls={false}></InputNumber>
             </Form.Item>
-            <Form.Item required label="再度造訪：" name="wantToVisitAgain">
+            <Form.Item
+              label="再度造訪"
+              name="wantToVisitAgain"
+              initialValue={true}
+              rules={wantToVisitAgainRules}
+            >
               <Radio.Group>
-                <Radio value={1}>是</Radio>
-                <Radio value={0}>否</Radio>
+                <Radio value={true}>是</Radio>
+                <Radio value={false}>否</Radio>
               </Radio.Group>
             </Form.Item>
-            <Form.Item label="麵條分數：" name="noodleScore">
+            <Form.Item label="麵條分數" name="noodleScore">
               <InputNumber controls={false} min={0} max={100}></InputNumber>
             </Form.Item>
-            <Form.Item label="麵條評論：" name="noodleDescription">
+            <Form.Item label="麵條評論" name="noodleDescription">
               <TextArea></TextArea>
             </Form.Item>
-            <Form.Item label="湯頭分數：" name="soupScore">
+            <Form.Item label="湯頭分數" name="soupScore">
               <InputNumber controls={false} min={0} max={100}></InputNumber>
             </Form.Item>
-            <Form.Item label="湯頭評論：" name="soupDescription">
+            <Form.Item label="湯頭評論" name="soupDescription">
               <TextArea></TextArea>
             </Form.Item>
-            <Form.Item label="牛肉分數：" name="beefScore">
+            <Form.Item label="牛肉分數" name="beefScore">
               <InputNumber controls={false} min={0} max={100}></InputNumber>
             </Form.Item>
-            <Form.Item label="牛肉評論：" name="beefDescription">
+            <Form.Item label="牛肉評論" name="beefDescription">
               <TextArea></TextArea>
             </Form.Item>
-            <Form.Item label="牛筋分數：" name="tendonScore">
+            <Form.Item label="牛筋分數" name="tendonScore">
               <InputNumber controls={false} min={0} max={100}></InputNumber>
             </Form.Item>
-            <Form.Item label="牛筋評論：" name="tendonDescription">
+            <Form.Item label="牛筋評論" name="tendonDescription">
               <TextArea></TextArea>
             </Form.Item>
-            <Form.Item label="牛肚分數：" name="tripeScore">
+            <Form.Item label="牛肚分數" name="tripeScore">
               <InputNumber controls={false} min={0} max={100}></InputNumber>
             </Form.Item>
-            <Form.Item label="牛肚評論：" name="tripeDescription">
+            <Form.Item label="牛肚評論" name="tripeDescription">
               <TextArea></TextArea>
             </Form.Item>
-            <Form.Item label="圖片：">
-              <Upload onChange={(info) => console.log(info)}>
-                <Button icon={<UploadOutlined />}>上傳圖片</Button>
+            <Form.Item
+              label="圖片"
+              name="images"
+              valuePropName="fileList"
+              initialValue={initialFileList}
+              getValueFromEvent={(e) => e.fileList}
+            >
+              <Upload
+                multiple
+                listType="picture-card"
+                showUploadList={{ showPreviewIcon: false }}
+              >
+                上傳圖片
               </Upload>
             </Form.Item>
-            <Form.Item label="整體評論：" name="overallDescription">
+            <Form.Item label="整體評論" name="overallDescription">
               <TextArea></TextArea>
             </Form.Item>
             <Form.Item wrapperCol={{ span: 24 }} style={{ textAlign: "right" }}>
@@ -432,7 +469,6 @@ function Home() {
               <Button
                 htmlType="submit"
                 type="primary"
-                onClick={insertOneComment}
                 loading={addCommentLoading}
               >
                 送出

@@ -9,7 +9,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import "../styles/globals.css";
 import GlobalContext from "../contexts/GlobalContext";
 import getCollection from "../utils/getCollection";
-import { BeefNoodleCommentFromFirestore } from "../types";
+import { BeefNoodleCommentFirestore } from "../types";
 
 // Stateless vars declare.
 const firebaseOptions: FirebaseOptions = {
@@ -24,7 +24,7 @@ const firebaseOptions: FirebaseOptions = {
 };
 const firebaseApp = initializeApp(firebaseOptions);
 const firestore = getFirestore(firebaseApp);
-const collectionRef = getCollection<BeefNoodleCommentFromFirestore>(
+const collectionRef = getCollection<BeefNoodleCommentFirestore>(
   firestore,
   "beefNoodleComments"
 );
