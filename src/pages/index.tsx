@@ -1,28 +1,32 @@
 // Related third party imports.
 import Head from "next/head";
-import { useContext, useEffect, useState } from "react";
+import { CSSProperties, useContext, useEffect, useMemo, useState } from "react";
 import {
   Upload,
   Form,
   Radio,
   InputNumber,
   Layout,
-  Typography,
   Table,
   Button,
   Modal,
-  FloatButton,
   Input,
   DatePicker,
   notification,
+  Dropdown,
   type UploadProps,
+  type DropDownProps,
+  type FormRule,
+  type FormProps,
+  type MenuProps,
+  // type ModalProps
 } from "antd";
+import { MenuOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import { PlusOutlined } from "@ant-design/icons";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { getDocs, addDoc, Timestamp } from "firebase/firestore/lite";
-import dayjs from "dayjs";
 import { signInWithRedirect, signOut } from "firebase/auth";
+import dayjs from "dayjs";
 
 // Local application/library specific imports.
 import setVh from "../utils/setVh";
@@ -34,21 +38,43 @@ import type {
 } from "../types";
 import GlobalContext from "../contexts/GlobalContext";
 import ImageDialogCarousel from "../components/ImageDialogCarousel";
-import { Rule } from "antd/es/form";
 
 // Stateless vars declare.
+const beefNoodleCommentKey = "beefNoodleComment";
+let isCommentModalOpened = false;
+const headerStyle: CSSProperties = {
+  position: "relative",
+  paddingInline: "16px",
+};
+const menuButtonStyle: CSSProperties = {
+  position: "absolute",
+  right: "16px",
+  top: "50%",
+  transform: "translateY(-50%)",
+};
+const scoreTCellStyle: CSSProperties = { color: "red" };
 const firebaseStorage = getStorage();
 const today = dayjs();
 const { Header, Content } = Layout;
-const { Title } = Typography;
 const { TextArea } = Input;
+const showUploadList: UploadProps["showUploadList"] = {
+  showPreviewIcon: false,
+};
 const initialFileList: UploadProps["fileList"] = [];
-const storeNameRules: Rule[] = [{ required: true, message: "請輸入店名" }];
-const scoreRules: Rule[] = [{ required: true, message: "請輸入分數" }];
-const visitDateRules: Rule[] = [{ required: true, message: "請選擇日期" }];
-const itemNameRules: Rule[] = [{ required: true, message: "請輸入商品名稱" }];
-const itemPriceRules: Rule[] = [{ required: true, message: "請輸入商品價格" }];
-const wantToVisitAgainRules: Rule[] = [
+const labelCol: FormProps["labelCol"] = { span: 4 };
+const wrapperCol: FormProps["wrapperCol"] = { span: 20 };
+const formButtonGroupWrapperCol: FormProps["wrapperCol"] = { span: 24 };
+const trigger: DropDownProps["trigger"] = ["click"];
+const storeNameRules: FormRule[] = [{ required: true, message: "請輸入店名" }];
+const scoreRules: FormRule[] = [{ required: true, message: "請輸入分數" }];
+const visitDateRules: FormRule[] = [{ required: true, message: "請選擇日期" }];
+const itemNameRules: FormRule[] = [
+  { required: true, message: "請輸入商品名稱" },
+];
+const itemPriceRules: FormRule[] = [
+  { required: true, message: "請輸入商品價格" },
+];
+const wantToVisitAgainRules: FormRule[] = [
   { required: true, message: "請選擇是否再度造訪" },
 ];
 
@@ -69,7 +95,7 @@ function Home() {
       width: 100,
       sorter: (a, b) => a.score - b.score,
       render: (val: BeefNoodleComment["score"]) => (
-        <b className={styles.scoreTCell} style={{ color: "red" }}>
+        <b className={styles.scoreTCell} style={scoreTCellStyle}>
           {val}
         </b>
       ),
@@ -193,6 +219,18 @@ function Home() {
       width: 300,
     },
   ];
+  function saveBeefNoodleCommentToLocalStorage() {
+    const beefNoodleComment = beefNoodleCommentFormIns.getFieldsValue();
+    const beefNoodleCommentStr = JSON.stringify(beefNoodleComment);
+    localStorage.setItem(beefNoodleCommentKey, beefNoodleCommentStr);
+  }
+  function handleLoginLogout() {
+    isLogged ? signOut(auth) : signInWithRedirect(auth, googleAuthProvider);
+  }
+  function handleCommentModalClose() {
+    toggleCommentModalOpen(false);
+    saveBeefNoodleCommentToLocalStorage();
+  }
   async function uploadImagesAndInsertComment(values: BeefNoodleCommentForm) {
     const { visitDate, images } = values;
     const comment: BeefNoodleCommentFirestore = {
@@ -212,6 +250,9 @@ function Home() {
       );
       return uploadBytes(storageRef, imageFile.originFileObj);
     });
+    /**
+     * @todo what if some promises reject?
+     */
     const uploadImageResponses = await Promise.allSettled(uploadImageRequests);
     const getImageURLRequests = uploadImageResponses.map(
       (res) =>
@@ -252,9 +293,28 @@ function Home() {
       })
     );
     beefNoodleCommentFormIns.resetFields();
+    localStorage.removeItem(beefNoodleCommentKey);
   }
+  useEffect(
+    function getBeefNoodleCommentFromLocalStorageWhenModalFirstOpen() {
+      if (!commentModalOpen) return;
+      if (isCommentModalOpened) return;
+      isCommentModalOpened = true;
+      const beefNoodleCommentStr = localStorage.getItem(beefNoodleCommentKey);
+      if (!beefNoodleCommentStr) return;
+      const beefNoodleComment = JSON.parse(
+        beefNoodleCommentStr
+      ) as BeefNoodleCommentForm;
+      beefNoodleComment.visitDate = dayjs(beefNoodleComment.visitDate);
+      beefNoodleCommentFormIns.setFieldsValue(beefNoodleComment);
+    },
+    [commentModalOpen]
+  );
   useEffect(function addAuthStateObserver() {
-    auth.onAuthStateChanged((user) => toggleIsLogged(Boolean(user)));
+    const unsubscribe = auth.onAuthStateChanged((user) =>
+      toggleIsLogged(Boolean(user))
+    );
+    return () => unsubscribe();
   }, []);
   useEffect(function addResizeEvtHandler() {
     setVh();
@@ -278,14 +338,38 @@ function Home() {
       })
       .catch((e) => console.log(e));
   }, []);
-  useEffect(function addOnBeforeUnloadEvent() {
-    function beforeUnload(e: BeforeUnloadEvent) {
-      e.preventDefault();
-      e.returnValue = "non-empty string";
-    }
-    addEventListener("beforeunload", beforeUnload);
-    return () => removeEventListener("beforeunload", beforeUnload);
-  }, []);
+  useEffect(
+    function addOnBeforeUnloadEvent() {
+      function beforeUnload(e: BeforeUnloadEvent) {
+        saveBeefNoodleCommentToLocalStorage();
+        if (!commentModalOpen) return;
+        e.preventDefault();
+        e.returnValue = "non-empty string";
+      }
+      addEventListener("beforeunload", beforeUnload);
+      return () => removeEventListener("beforeunload", beforeUnload);
+    },
+    [commentModalOpen]
+  );
+  const headerMenuProps: MenuProps = useMemo(
+    () => ({
+      items: [
+        {
+          label: isLogged ? "登出" : "登入",
+          onClick: handleLoginLogout,
+          key: "0",
+        },
+        {
+          label: "新增評論",
+          onClick: isLogged
+            ? () => toggleCommentModalOpen(true)
+            : handleLoginLogout,
+          key: "1",
+        },
+      ],
+    }),
+    [isLogged]
+  );
   return (
     <>
       <Head>
@@ -318,36 +402,13 @@ function Home() {
           content="喜歡吃牛肉麵嗎？那絕對不能錯過這個"
         />
       </Head>
-      <Header style={{ position: "relative" }}>
-        <Title
-          level={1}
-          style={{
-            color: "white",
-            margin: 0,
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          雙北牛肉麵評分
-        </Title>
-        <Button
-          type="primary"
-          style={{
-            position: "absolute",
-            top: "50%",
-            transform: "translateY(-50%)",
-            right: "25px",
-          }}
-          onClick={() => {
-            isLogged
-              ? signOut(auth)
-              : signInWithRedirect(auth, googleAuthProvider);
-          }}
-        >
-          {isLogged ? "登出" : "Google 登入"}
-        </Button>
+      <Header style={headerStyle}>
+        <h1 className={styles.title}>雙北牛肉麵評分</h1>
+        <Dropdown trigger={trigger} menu={headerMenuProps}>
+          <Button shape="circle" style={menuButtonStyle}>
+            <MenuOutlined />
+          </Button>
+        </Dropdown>
       </Header>
       <Content>
         <Table
@@ -363,12 +424,12 @@ function Home() {
           footer={null}
           open={commentModalOpen}
           cancelButtonProps={{ disabled: addCommentLoading }}
-          onCancel={() => toggleCommentModalOpen(false)}
+          onCancel={handleCommentModalClose}
         >
           <Form
             form={beefNoodleCommentFormIns}
-            labelCol={{ span: 4 }}
-            wrapperCol={{ span: 20 }}
+            labelCol={labelCol}
+            wrapperCol={wrapperCol}
             className={styles.beefNoodleCommentFormIns}
             onFinish={(values) => {
               toggleAddCommentLoading(true);
@@ -449,7 +510,7 @@ function Home() {
               <Upload
                 multiple
                 listType="picture-card"
-                showUploadList={{ showPreviewIcon: false }}
+                showUploadList={showUploadList}
               >
                 上傳圖片
               </Upload>
@@ -457,14 +518,16 @@ function Home() {
             <Form.Item label="整體評論" name="overallDescription">
               <TextArea></TextArea>
             </Form.Item>
-            <Form.Item wrapperCol={{ span: 24 }} style={{ textAlign: "right" }}>
+            <Form.Item
+              wrapperCol={formButtonGroupWrapperCol}
+              className={styles.formButtonGroup}
+            >
               <Button
                 htmlType="button"
-                onClick={() => toggleCommentModalOpen(false)}
-                style={{ marginRight: "8px" }}
+                onClick={handleCommentModalClose}
                 disabled={addCommentLoading}
               >
-                取消
+                關閉
               </Button>
               <Button
                 htmlType="submit"
@@ -476,15 +539,6 @@ function Home() {
             </Form.Item>
           </Form>
         </Modal>
-        {isLogged && (
-          <FloatButton
-            icon={<PlusOutlined />}
-            tooltip="新增評論"
-            type="primary"
-            style={{ left: "24px", bottom: "16px" }}
-            onClick={() => toggleCommentModalOpen(true)}
-          ></FloatButton>
-        )}
       </Content>
       {Notification}
     </>
