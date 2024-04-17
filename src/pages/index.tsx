@@ -19,6 +19,7 @@ import {
   type FormRule,
   type FormProps,
   type MenuProps,
+  type TableProps,
   // type ModalProps
 } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
@@ -77,6 +78,9 @@ const itemPriceRules: FormRule[] = [
 const wantToVisitAgainRules: FormRule[] = [
   { required: true, message: "請選擇是否再度造訪" },
 ];
+const tableScroll: TableProps<BeefNoodleComment>["scroll"] = {
+  y: "calc(100 * var(--vh) - 64px - 55px)",
+};
 
 export default Home;
 
@@ -418,6 +422,7 @@ function Home() {
           dataSource={dataSource}
           columns={columns}
           pagination={false}
+          scroll={tableScroll}
         ></Table>
         <Modal
           title="新增評論"

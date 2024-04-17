@@ -31,8 +31,3 @@ body,
   z-index: 2;
   color: black;
 }
-.ant-table-content {
-  overflow: auto;
-  /* header 64px + 1px 四捨五入 */
-  height: calc(100 * var(--vh) - 64px - 1px);
-}

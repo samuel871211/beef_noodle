@@ -2,6 +2,27 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.12.0 (2024-04-17)
+
+### style
+
+- fixed table header
+
+## 0.11.0 (2023-03-17)
+
+### feat
+
+- 暫存評論功能
+
+### perf
+
+- 一些 inline style 改成 class
+- 固定不變的 object 抽到 component 外部定義
+
+### fix
+
+- `addAuthStateObserver` 加上 clean up function
+
 ## 0.10.0 (2024-02-16)
 
 ### added
