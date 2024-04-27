@@ -4,10 +4,7 @@ import dayjs from "dayjs";
 import { UploadProps } from "antd";
 
 export type BeefNoodleComment = {
-  /**
-   * 陣列的index，從DB取回comments的時候才會產生
-   */
-  key: number;
+  key: string;
   storeName: string;
   score: number;
   visitDate: Date;

@@ -22,7 +22,11 @@ import {
   type TableProps,
   // type ModalProps
 } from "antd";
-import { MenuOutlined } from "@ant-design/icons";
+import {
+  CheckCircleFilled,
+  CloseCircleFilled,
+  MenuOutlined,
+} from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { getDocs, addDoc, Timestamp } from "firebase/firestore/lite";
@@ -43,6 +47,12 @@ import ImageDialogCarousel from "../components/ImageDialogCarousel";
 // Stateless vars declare.
 const beefNoodleCommentKey = "beefNoodleComment";
 let isCommentModalOpened = false;
+const checkCircleStyle: CSSProperties = {
+  color: "#52c41a",
+};
+const closeCircleStyle: CSSProperties = {
+  color: "#ff4d4f",
+};
 const headerStyle: CSSProperties = {
   position: "relative",
   paddingInline: "16px",
@@ -97,6 +107,7 @@ function Home() {
       title: "分數",
       dataIndex: "score",
       width: 100,
+      showSorterTooltip: false,
       sorter: (a, b) => a.score - b.score,
       render: (val: BeefNoodleComment["score"]) => (
         <b className={styles.scoreTCell} style={scoreTCellStyle}>
@@ -114,6 +125,7 @@ function Home() {
       dataIndex: "visitDate",
       width: 120,
       defaultSortOrder: "ascend",
+      showSorterTooltip: false,
       sorter: (a, b) =>
         Date.parse(a.visitDate.toISOString()) -
         Date.parse(b.visitDate.toISOString()),
@@ -142,6 +154,7 @@ function Home() {
       title: "麵條分數",
       dataIndex: "noodleScore",
       width: 100,
+      showSorterTooltip: false,
       sorter: (a, b) => (a.noodleScore || 0) - (b.noodleScore || 0),
       render: (val: BeefNoodleComment["noodleScore"]) => (
         <b className={styles.scoreTCell}>{val}</b>
@@ -156,6 +169,7 @@ function Home() {
       title: "牛肉分數",
       dataIndex: "beefScore",
       width: 100,
+      showSorterTooltip: false,
       sorter: (a, b) => (a.beefScore || 0) - (b.beefScore || 0),
       render: (val: BeefNoodleComment["beefScore"]) => (
         <b className={styles.scoreTCell}>{val}</b>
@@ -170,6 +184,7 @@ function Home() {
       title: "湯頭分數",
       dataIndex: "soupScore",
       width: 100,
+      showSorterTooltip: false,
       sorter: (a, b) => (a.soupScore || 0) - (b.soupScore || 0),
       render: (val: BeefNoodleComment["soupScore"]) => (
         <b className={styles.scoreTCell}>{val}</b>
@@ -189,15 +204,21 @@ function Home() {
       title: "再次造訪",
       dataIndex: "wantToVisitAgain",
       width: 100,
-      render: (val: BeefNoodleComment["wantToVisitAgain"]) => (
-        <b className={styles.booleanTCell}>{val ? "是" : "否"}</b>
-      ),
+      showSorterTooltip: false,
+      className: styles.wantToVisitAgainCell,
       sorter: (comment) => (comment.wantToVisitAgain ? 1 : -1),
+      render: (val: BeefNoodleComment["wantToVisitAgain"]) =>
+        val ? (
+          <CheckCircleFilled style={checkCircleStyle} />
+        ) : (
+          <CloseCircleFilled style={closeCircleStyle} />
+        ),
     },
     {
       title: "牛筋分數",
       dataIndex: "tendonScore",
       width: 100,
+      showSorterTooltip: false,
       sorter: (a, b) => (a.tendonScore || 0) - (b.tendonScore || 0),
       render: (val: BeefNoodleComment["tendonScore"]) => (
         <b className={styles.scoreTCell}>{val}</b>
@@ -212,6 +233,7 @@ function Home() {
       title: "牛肚分數",
       dataIndex: "tripeScore",
       width: 100,
+      showSorterTooltip: false,
       sorter: (a, b) => (a.tripeScore || 0) - (b.tripeScore || 0),
       render: (val: BeefNoodleComment["tripeScore"]) => (
         <b className={styles.scoreTCell}>{val}</b>
@@ -277,22 +299,25 @@ function Home() {
     if (!comment.soupScore) delete comment.soupScore;
     if (!comment.soupDescription) delete comment.soupDescription;
     if (!comment.overallDescription) delete comment.overallDescription;
-    const isSuccess = await addDoc(collectionRef, comment)
-      .then(() => {
-        notification.success({ message: "新增評論成功" });
-        return true;
+    const documentId = await addDoc(collectionRef, comment)
+      .then((documentReference) => {
+        notificationIns.success({ message: "新增評論成功" });
+        return documentReference.id;
       })
       .catch((err) => {
-        if (err?.code === "permission-denied")
-          notificationIns.error({ message: "很抱歉，您無權限新增評論" });
-        else notification.error({ message: "新增評論失敗" });
-        return false;
+        notificationIns.error({
+          message:
+            err.code === "permission-denied"
+              ? "很抱歉，您無權限新增評論"
+              : "新增評論失敗",
+        });
+        return "";
       });
-    if (!isSuccess) return;
+    if (!documentId) return;
     setDataSource((prev) =>
       prev.concat({
         ...comment,
-        key: prev.length,
+        key: documentId,
         visitDate: comment.visitDate.toDate(),
       })
     );
@@ -329,11 +354,11 @@ function Home() {
     getDocs(collectionRef)
       .then((querySnapshot) => {
         const beefNoodleComments: BeefNoodleComment[] = querySnapshot.docs.map(
-          (snapshot, idx) => {
+          (snapshot) => {
             const document = snapshot.data();
             return {
               ...document,
-              key: idx,
+              key: snapshot.id,
               visitDate: new Date(document.visitDate.seconds * 1000),
             };
           }

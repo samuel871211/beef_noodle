@@ -2,6 +2,21 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.12.1 (2024-04-27)
+
+### fixed
+
+- 修正 antd `notification` 的使用方法 => `notificationIns.success`, `notificationIns.error`
+
+### perf
+
+- 牛肉麵評論的 `key` 改用 `document.id`
+
+### style
+
+- "再次造訪"欄位的值，改成用 Icon 呈現
+- `showSorterTooltip: false`
+
 ## 0.12.0 (2024-04-17)
 
 ### style

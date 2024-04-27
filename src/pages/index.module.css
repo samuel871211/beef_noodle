@@ -95,10 +95,9 @@
   font-size: 24px;
   text-align: center;
 }
-.booleanTCell {
+td.wantToVisitAgainCell {
+  text-align: center;
   font-size: 24px;
-  padding-left: 20px;
-  padding-right: 20px;
 }
 .formButtonGroup {
   text-align: right;
