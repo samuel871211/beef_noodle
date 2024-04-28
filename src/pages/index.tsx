@@ -31,6 +31,7 @@ import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { getDocs, addDoc, Timestamp } from "firebase/firestore/lite";
 import { signInWithRedirect, signOut } from "firebase/auth";
 import dayjs from "dayjs";
+import useSWR, { useSWRConfig } from "swr";
 
 // Local application/library specific imports.
 import setVh from "../utils/setVh";
@@ -40,7 +41,6 @@ import type {
   BeefNoodleCommentFirestore,
   BeefNoodleCommentForm,
 } from "../types";
-// import GlobalContext from "../contexts/GlobalContext";
 import ImageDialogCarousel from "../components/ImageDialogCarousel";
 import {
   auth,
@@ -96,12 +96,19 @@ const wantToVisitAgainRules: FormRule[] = [
 const tableScroll: TableProps<BeefNoodleComment>["scroll"] = {
   y: "calc(100 * var(--vh) - 64px - 56px)",
 };
+async function getAllBeefNoodleComments() {
+  const querySnapshot = await getDocs(allBeefNoodleCommentsQuery);
+  return querySnapshot.docs;
+}
 
 export default Home;
 
 function Home() {
+  const { data } = useSWR(beefNoodleCommentKey, getAllBeefNoodleComments, {
+    revalidateOnFocus: false,
+  });
+  const { mutate } = useSWRConfig();
   const [commentModalOpen, toggleCommentModalOpen] = useState(false);
-  const [dataSource, setDataSource] = useState<BeefNoodleComment[]>([]);
   const [beefNoodleCommentFormIns] = Form.useForm<BeefNoodleCommentForm>();
   const [isLogged, toggleIsLogged] = useState(false);
   const [addCommentLoading, toggleAddCommentLoading] = useState(false);
@@ -319,16 +326,41 @@ function Home() {
         return "";
       });
     if (!documentId) return;
-    setDataSource((prev) =>
-      prev.concat({
-        ...comment,
-        key: documentId,
-        visitDate: comment.visitDate.toDate(),
-      })
-    );
+    mutate(beefNoodleCommentKey);
     beefNoodleCommentFormIns.resetFields();
     localStorage.removeItem(beefNoodleCommentKey);
   }
+  const beefNoodleComments: BeefNoodleComment[] = useMemo(
+    () =>
+      (data || []).map((doc) => {
+        const docData = doc.data();
+        return {
+          ...docData,
+          key: doc.id,
+          visitDate: docData.visitDate.toDate(),
+        };
+      }),
+    [data]
+  );
+  const headerMenuProps: MenuProps = useMemo(
+    () => ({
+      items: [
+        {
+          label: isLogged ? "登出" : "登入",
+          onClick: handleLoginLogout,
+          key: "0",
+        },
+        {
+          label: "新增評論",
+          onClick: isLogged
+            ? () => toggleCommentModalOpen(true)
+            : handleLoginLogout,
+          key: "1",
+        },
+      ],
+    }),
+    [isLogged]
+  );
   useEffect(
     function getBeefNoodleCommentFromLocalStorageWhenModalFirstOpen() {
       if (!commentModalOpen) return;
@@ -355,24 +387,15 @@ function Home() {
     addEventListener("resize", setVh);
     return () => removeEventListener("resize", setVh);
   }, []);
-  useEffect(function getAllComments() {
-    getDocs(allBeefNoodleCommentsQuery)
-      .then((querySnapshot) => {
-        const beefNoodleComments: BeefNoodleComment[] = querySnapshot.docs.map(
-          (doc) => {
-            const data = doc.data();
-            return {
-              ...data,
-              key: doc.id,
-              visitDate: new Date(data.visitDate.seconds * 1000),
-            };
-          }
-        );
-        setDataSource(beefNoodleComments);
-      })
-      .catch((e) => console.log(e));
-  }, []);
-  useEffect(() => setSelectedRowKey(location.hash.split("#")[1] || ""), []);
+  useEffect(() => {
+    const rowKey = location.hash.split("#")[1] || "";
+    if (beefNoodleComments.length === 0) return;
+    if (!rowKey) return;
+    // change location hash instantly to trigger page scroll.
+    location.hash = "";
+    location.hash = rowKey;
+    setSelectedRowKey(rowKey);
+  }, [beefNoodleComments]);
   useEffect(
     function addOnBeforeUnloadEvent() {
       function beforeUnload(e: BeforeUnloadEvent) {
@@ -385,25 +408,6 @@ function Home() {
       return () => removeEventListener("beforeunload", beforeUnload);
     },
     [commentModalOpen]
-  );
-  const headerMenuProps: MenuProps = useMemo(
-    () => ({
-      items: [
-        {
-          label: isLogged ? "登出" : "登入",
-          onClick: handleLoginLogout,
-          key: "0",
-        },
-        {
-          label: "新增評論",
-          onClick: isLogged
-            ? () => toggleCommentModalOpen(true)
-            : handleLoginLogout,
-          key: "1",
-        },
-      ],
-    }),
-    [isLogged]
   );
   return (
     <>
@@ -450,22 +454,24 @@ function Home() {
           bordered
           tableLayout="fixed"
           className={styles.table}
-          dataSource={dataSource}
+          dataSource={beefNoodleComments}
           columns={columns}
           pagination={false}
           scroll={tableScroll}
-          onRow={(data) => ({
-            id: data.key,
+          onRow={(beefNoodleComment) => ({
+            id: beefNoodleComment.key,
             className:
-              selectedRowKey === data.key ? "ant-table-row-selected" : "",
+              selectedRowKey === beefNoodleComment.key
+                ? "ant-table-row-selected"
+                : "",
             onClick: (e) => {
-              location.hash = data.key;
+              location.hash = beefNoodleComment.key;
               history.pushState(
                 "",
                 "",
-                `?storeName=${data.storeName}#${data.key}`
+                `?storeName=${beefNoodleComment.storeName}#${beefNoodleComment.key}`
               );
-              setSelectedRowKey(data.key);
+              setSelectedRowKey(beefNoodleComment.key);
             },
           })}
         ></Table>

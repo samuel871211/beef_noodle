@@ -2,6 +2,16 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.14.0 (2024-04-28)
+
+### chore
+
+- 新增套件 `swr`
+
+### refactor
+
+- 將 `useEffect` call api 的形式改成 `useSWR`
+
 ## 0.13.0 (2024-04-27)
 
 ### feat
