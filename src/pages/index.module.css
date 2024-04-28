@@ -90,6 +90,9 @@
 .table th {
   white-space: nowrap;
 }
+.table tr:hover {
+  cursor: pointer;
+}
 .scoreTCell {
   display: block;
   font-size: 24px;

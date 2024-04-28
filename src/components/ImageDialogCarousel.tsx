@@ -4,6 +4,7 @@ import { Button, Carousel, Modal } from "antd";
 import { RightOutlined, LeftOutlined } from "@ant-design/icons";
 
 // Local application/library specific imports.
+import styles from "./ImageDialogCarousel.module.css";
 import type { BeefNoodleComment } from "../types";
 
 // Stateless vars declare.
@@ -14,7 +15,7 @@ function ImageDialogCarousel(props: { beefNoodleComment: BeefNoodleComment }) {
   const { beefNoodleComment } = props;
   const [imgModalOpen, toggleImgModalOpen] = useState(false);
   return (
-    <>
+    <div className={styles.container} onClick={(e) => e.stopPropagation()}>
       <Button onClick={() => toggleImgModalOpen(true)}>看圖片</Button>
       <Modal
         title={beefNoodleComment.storeName}
@@ -34,6 +35,6 @@ function ImageDialogCarousel(props: { beefNoodleComment: BeefNoodleComment }) {
           ))}
         </Carousel>
       </Modal>
-    </>
+    </div>
   );
 }

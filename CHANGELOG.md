@@ -2,6 +2,20 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.13.0 (2024-04-27)
+
+### feat
+
+- 點擊 table row 可以 focus 到單間店，但點擊 "看圖片" 並不會 focus 到單間店
+
+### refactor
+
+- 將 firebase 相關的邏輯抽到 utils，並且避免使用 Context 傳遞
+
+### style
+
+- 修正 edge 瀏覽器會有直向卷軸的問題
+
 ## 0.12.1 (2024-04-27)
 
 ### fixed

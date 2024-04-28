@@ -9,6 +9,7 @@ body,
 }
 * {
   box-sizing: border-box;
+  scroll-behavior: smooth;
 }
 /* https://github.com/ant-design/ant-design/issues/12479 */
 .ant-carousel .slick-prev,

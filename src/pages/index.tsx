@@ -1,6 +1,6 @@
 // Related third party imports.
 import Head from "next/head";
-import { CSSProperties, useContext, useEffect, useMemo, useState } from "react";
+import { CSSProperties, useEffect, useMemo, useState } from "react";
 import {
   Upload,
   Form,
@@ -20,7 +20,6 @@ import {
   type FormProps,
   type MenuProps,
   type TableProps,
-  // type ModalProps
 } from "antd";
 import {
   CheckCircleFilled,
@@ -41,8 +40,14 @@ import type {
   BeefNoodleCommentFirestore,
   BeefNoodleCommentForm,
 } from "../types";
-import GlobalContext from "../contexts/GlobalContext";
+// import GlobalContext from "../contexts/GlobalContext";
 import ImageDialogCarousel from "../components/ImageDialogCarousel";
+import {
+  auth,
+  googleAuthProvider,
+  allBeefNoodleCommentsQuery,
+  beefNoodleCommentsCollectionRef,
+} from "../utils/firebase";
 
 // Stateless vars declare.
 const beefNoodleCommentKey = "beefNoodleComment";
@@ -89,7 +94,7 @@ const wantToVisitAgainRules: FormRule[] = [
   { required: true, message: "請選擇是否再度造訪" },
 ];
 const tableScroll: TableProps<BeefNoodleComment>["scroll"] = {
-  y: "calc(100 * var(--vh) - 64px - 55px)",
+  y: "calc(100 * var(--vh) - 64px - 56px)",
 };
 
 export default Home;
@@ -100,8 +105,8 @@ function Home() {
   const [beefNoodleCommentFormIns] = Form.useForm<BeefNoodleCommentForm>();
   const [isLogged, toggleIsLogged] = useState(false);
   const [addCommentLoading, toggleAddCommentLoading] = useState(false);
-  const { collectionRef, auth, googleAuthProvider } = useContext(GlobalContext);
   const [notificationIns, Notification] = notification.useNotification();
+  const [selectedRowKey, setSelectedRowKey] = useState("");
   const columns: ColumnsType<BeefNoodleComment> = [
     {
       title: "分數",
@@ -299,7 +304,7 @@ function Home() {
     if (!comment.soupScore) delete comment.soupScore;
     if (!comment.soupDescription) delete comment.soupDescription;
     if (!comment.overallDescription) delete comment.overallDescription;
-    const documentId = await addDoc(collectionRef, comment)
+    const documentId = await addDoc(beefNoodleCommentsCollectionRef, comment)
       .then((documentReference) => {
         notificationIns.success({ message: "新增評論成功" });
         return documentReference.id;
@@ -351,15 +356,15 @@ function Home() {
     return () => removeEventListener("resize", setVh);
   }, []);
   useEffect(function getAllComments() {
-    getDocs(collectionRef)
+    getDocs(allBeefNoodleCommentsQuery)
       .then((querySnapshot) => {
         const beefNoodleComments: BeefNoodleComment[] = querySnapshot.docs.map(
-          (snapshot) => {
-            const document = snapshot.data();
+          (doc) => {
+            const data = doc.data();
             return {
-              ...document,
-              key: snapshot.id,
-              visitDate: new Date(document.visitDate.seconds * 1000),
+              ...data,
+              key: doc.id,
+              visitDate: new Date(data.visitDate.seconds * 1000),
             };
           }
         );
@@ -367,6 +372,7 @@ function Home() {
       })
       .catch((e) => console.log(e));
   }, []);
+  useEffect(() => setSelectedRowKey(location.hash.split("#")[1] || ""), []);
   useEffect(
     function addOnBeforeUnloadEvent() {
       function beforeUnload(e: BeforeUnloadEvent) {
@@ -448,7 +454,22 @@ function Home() {
           columns={columns}
           pagination={false}
           scroll={tableScroll}
+          onRow={(data) => ({
+            id: data.key,
+            className:
+              selectedRowKey === data.key ? "ant-table-row-selected" : "",
+            onClick: (e) => {
+              location.hash = data.key;
+              history.pushState(
+                "",
+                "",
+                `?storeName=${data.storeName}#${data.key}`
+              );
+              setSelectedRowKey(data.key);
+            },
+          })}
         ></Table>
+
         <Modal
           title="新增評論"
           footer={null}
