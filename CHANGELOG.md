@@ -2,6 +2,12 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.15.0 (2024-05-08)
+
+### feat
+
+- 暫存評論功能優化，新增 `window.onBlur`
+
 ## 0.14.0 (2024-04-28)
 
 ### chore

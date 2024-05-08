@@ -382,10 +382,16 @@ function Home() {
     );
     return () => unsubscribe();
   }, []);
-  useEffect(function addResizeEvtHandler() {
+  useEffect(function addEventHandlers() {
     setVh();
     addEventListener("resize", setVh);
-    return () => removeEventListener("resize", setVh);
+    addEventListener("beforeunload", saveBeefNoodleCommentToLocalStorage);
+    addEventListener("blur", saveBeefNoodleCommentToLocalStorage);
+    return () => {
+      removeEventListener("resize", setVh);
+      removeEventListener("beforeunload", saveBeefNoodleCommentToLocalStorage);
+      removeEventListener("blur", saveBeefNoodleCommentToLocalStorage);
+    };
   }, []);
   useEffect(() => {
     const rowKey = location.hash.split("#")[1] || "";
@@ -396,19 +402,16 @@ function Home() {
     location.hash = rowKey;
     setSelectedRowKey(rowKey);
   }, [beefNoodleComments]);
-  useEffect(
-    function addOnBeforeUnloadEvent() {
-      function beforeUnload(e: BeforeUnloadEvent) {
-        saveBeefNoodleCommentToLocalStorage();
-        if (!commentModalOpen) return;
-        e.preventDefault();
-        e.returnValue = "non-empty string";
-      }
-      addEventListener("beforeunload", beforeUnload);
-      return () => removeEventListener("beforeunload", beforeUnload);
-    },
-    [commentModalOpen]
-  );
+  // useEffect(() => {
+  //   function beforeUnload(e: BeforeUnloadEvent) {
+  //     saveBeefNoodleCommentToLocalStorage();
+  //     if (!commentModalOpen) return;
+  //     e.preventDefault();
+  //     e.returnValue = "non-empty string";
+  //   }
+  //   addEventListener("beforeunload", beforeUnload);
+  //   return () => removeEventListener("beforeunload", beforeUnload);
+  // }, [commentModalOpen]);
   return (
     <>
       <Head>
