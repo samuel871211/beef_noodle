@@ -5,6 +5,11 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ]
+    ],
+    "redirects": [{
+      "source": "*",
+      "destination": "https://beef-noodle-brown.vercel.app/",
+      "type": 302
+    }]
   }
 }
