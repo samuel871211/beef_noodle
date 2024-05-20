@@ -2,6 +2,16 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.16.0 (2024-05-19)
+
+### feat
+
+- 首頁大改版，改成交友軟體滑卡形式
+
+### chore
+
+- 新增套件 `swiper`
+
 ## 0.15.0 (2024-05-08)
 
 ### feat

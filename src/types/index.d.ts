@@ -23,7 +23,14 @@ export type BeefNoodleComment = {
   tripeDescription?: string;
   images: ImageURL[];
   overallDescription?: string;
+  // paymentMethods: number[];
 };
+// todo 多元支付方式
+// type PaymentMethodMapping = {
+//   0: 'line pay',
+//   1: 'taiwan pay',
+//   2: '信用卡'
+// }
 
 export type BeefNoodleCommentForm = Omit<
   BeefNoodleComment,
