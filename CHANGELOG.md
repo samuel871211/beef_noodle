@@ -2,6 +2,12 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.16.1 (2024-05-21)
+
+### chore
+
+- `trailingSlash: true`
+
 ## 0.16.0 (2024-05-19)
 
 ### feat
