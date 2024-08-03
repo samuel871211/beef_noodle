@@ -13,7 +13,7 @@
         "type": 302
       },
       {
-        "source": "**",
+        "source": "/:capture",
         "destination": "https://beef-noodle-brown.vercel.app/:capture",
         "type": 302
       }
