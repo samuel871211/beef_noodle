@@ -122,7 +122,8 @@ const columns: ColumnsType<BeefNoodleComment> = [
     sorter: (a, b) =>
       Date.parse(a.visitDate.toISOString()) -
       Date.parse(b.visitDate.toISOString()),
-    render: (val: BeefNoodleComment["visitDate"]) => val.toLocaleDateString(),
+    render: (val: BeefNoodleComment["visitDate"]) =>
+      val.toLocaleDateString("zh-TW"),
   },
   {
     title: "品項",
