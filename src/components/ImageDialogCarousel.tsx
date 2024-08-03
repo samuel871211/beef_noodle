@@ -1,5 +1,6 @@
 // Related third party imports.
 import { useState } from "react";
+import Image from "next/image";
 import { Button, Carousel, Modal } from "antd";
 import { RightOutlined, LeftOutlined } from "@ant-design/icons";
 
@@ -29,8 +30,8 @@ function ImageDialogCarousel(props: { beefNoodleComment: BeefNoodleComment }) {
           nextArrow={<RightOutlined />}
         >
           {beefNoodleComment.images.map((imageURL) => (
-            <div key={imageURL}>
-              <img width="100%" src={imageURL} alt="" />
+            <div key={imageURL} className={styles.imageContainer}>
+              <Image fill src={imageURL} alt="" sizes="100vw"></Image>
             </div>
           ))}
         </Carousel>

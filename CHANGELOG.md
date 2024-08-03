@@ -2,6 +2,31 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.17.0 (2024-08-03)
+
+### perf
+
+- 將 `columns` 移到元件外部定義，避免每次都重新 assign 新的物件
+
+### feat
+
+- `<img/>` 改成 `<Image/>`
+- 新增全局 `@ant-design/cssinjs` 以加快 SSR 的體驗
+- 登入狀態，漢堡選單不顯示登出按鈕，避免手殘按到（暫解）
+- 將 `beefNoodleComment` 的 `key` 欄位改成 `id`
+- 交友軟體頁面，改成 SSR，但評論文字沒有揭露在頁面上
+- list 頁面，改成 SSR
+- list 頁面，店名 `fixed: left`
+
+### chore
+
+- `next.config.js` 新增 `images.domains`
+- `next.config.js` 改成 SSR
+- 新增套件 `@ant-design/cssinjs`
+- 套件降版 `next`, `eslint-config-next`
+- 移除套件 `firebase-tools`
+- `firebase.json` 設定 redirects
+
 ## 0.16.1 (2024-05-21)
 
 ### chore

@@ -29,9 +29,8 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { getDocs, addDoc, Timestamp } from "firebase/firestore/lite";
-import { signInWithRedirect, signOut } from "firebase/auth";
+import { signInWithRedirect } from "firebase/auth";
 import dayjs from "dayjs";
-import useSWR, { useSWRConfig } from "swr";
 
 // Local application/library specific imports.
 import setVh from "../../utils/setVh";
@@ -40,6 +39,7 @@ import type {
   BeefNoodleComment,
   BeefNoodleCommentFirestore,
   BeefNoodleCommentForm,
+  BeefNoodleCommentJSON,
 } from "../../types";
 import ImageDialogCarousel from "../../components/ImageDialogCarousel";
 import {
@@ -48,6 +48,7 @@ import {
   allBeefNoodleCommentsQuery,
   beefNoodleCommentsCollectionRef,
 } from "../../utils/firebase";
+import { GetServerSideProps } from "next";
 
 // Stateless vars declare.
 const beefNoodleCommentKey = "beefNoodleComment";
@@ -93,177 +94,195 @@ const itemPriceRules: FormRule[] = [
 const wantToVisitAgainRules: FormRule[] = [
   { required: true, message: "請選擇是否再度造訪" },
 ];
+const columns: ColumnsType<BeefNoodleComment> = [
+  {
+    title: "店名",
+    dataIndex: "storeName",
+    width: 150,
+    fixed: "left",
+  },
+  {
+    title: "分數",
+    dataIndex: "score",
+    width: 100,
+    showSorterTooltip: false,
+    sorter: (a, b) => a.score - b.score,
+    render: (val: BeefNoodleComment["score"]) => (
+      <b className={styles.scoreTCell} style={scoreTCellStyle}>
+        {val}
+      </b>
+    ),
+  },
+  {
+    title: "造訪日期",
+    dataIndex: "visitDate",
+    width: 120,
+    defaultSortOrder: "ascend",
+    showSorterTooltip: false,
+    sorter: (a, b) =>
+      Date.parse(a.visitDate.toISOString()) -
+      Date.parse(b.visitDate.toISOString()),
+    render: (val: BeefNoodleComment["visitDate"]) => val.toLocaleDateString(),
+  },
+  {
+    title: "品項",
+    dataIndex: "itemName",
+    width: 100,
+  },
+  {
+    title: "價格",
+    dataIndex: "itemPrice",
+    width: 100,
+    render: (val: BeefNoodleComment["itemPrice"]) => `$${val}`,
+  },
+  {
+    title: "圖片",
+    dataIndex: "images",
+    width: 120,
+    render: (val: BeefNoodleComment["images"], record) => (
+      <ImageDialogCarousel beefNoodleComment={record} />
+    ),
+  },
+  {
+    title: "麵條分數",
+    dataIndex: "noodleScore",
+    width: 100,
+    showSorterTooltip: false,
+    sorter: (a, b) => (a.noodleScore || 0) - (b.noodleScore || 0),
+    render: (val: BeefNoodleComment["noodleScore"]) => (
+      <b className={styles.scoreTCell}>{val}</b>
+    ),
+  },
+  {
+    title: "麵條描述",
+    dataIndex: "noodleDescription",
+    width: 300,
+  },
+  {
+    title: "牛肉分數",
+    dataIndex: "beefScore",
+    width: 100,
+    showSorterTooltip: false,
+    sorter: (a, b) => (a.beefScore || 0) - (b.beefScore || 0),
+    render: (val: BeefNoodleComment["beefScore"]) => (
+      <b className={styles.scoreTCell}>{val}</b>
+    ),
+  },
+  {
+    title: "牛肉描述",
+    dataIndex: "beefDescription",
+    width: 300,
+  },
+  {
+    title: "湯頭分數",
+    dataIndex: "soupScore",
+    width: 100,
+    showSorterTooltip: false,
+    sorter: (a, b) => (a.soupScore || 0) - (b.soupScore || 0),
+    render: (val: BeefNoodleComment["soupScore"]) => (
+      <b className={styles.scoreTCell}>{val}</b>
+    ),
+  },
+  {
+    title: "湯頭描述",
+    dataIndex: "soupDescription",
+    width: 300,
+  },
+  {
+    title: "整體描述",
+    dataIndex: "overallDescription",
+    width: 300,
+  },
+  {
+    title: "再次造訪",
+    dataIndex: "wantToVisitAgain",
+    width: 100,
+    showSorterTooltip: false,
+    className: styles.wantToVisitAgainCell,
+    sorter: (comment) => (comment.wantToVisitAgain ? 1 : -1),
+    render: (val: BeefNoodleComment["wantToVisitAgain"]) =>
+      val ? (
+        <CheckCircleFilled style={checkCircleStyle} />
+      ) : (
+        <CloseCircleFilled style={closeCircleStyle} />
+      ),
+  },
+  {
+    title: "牛筋分數",
+    dataIndex: "tendonScore",
+    width: 100,
+    showSorterTooltip: false,
+    sorter: (a, b) => (a.tendonScore || 0) - (b.tendonScore || 0),
+    render: (val: BeefNoodleComment["tendonScore"]) => (
+      <b className={styles.scoreTCell}>{val}</b>
+    ),
+  },
+  {
+    title: "牛筋描述",
+    dataIndex: "tendonDescription",
+    width: 300,
+  },
+  {
+    title: "牛肚分數",
+    dataIndex: "tripeScore",
+    width: 100,
+    showSorterTooltip: false,
+    sorter: (a, b) => (a.tripeScore || 0) - (b.tripeScore || 0),
+    render: (val: BeefNoodleComment["tripeScore"]) => (
+      <b className={styles.scoreTCell}>{val}</b>
+    ),
+  },
+  {
+    title: "牛肚描述",
+    dataIndex: "tripeDescription",
+    width: 300,
+  },
+];
 const tableScroll: TableProps<BeefNoodleComment>["scroll"] = {
+  x: columns.map<number>((c) => c.width as number).reduce((a, b) => a + b, 0),
   y: "calc(100 * var(--vh) - 64px - 56px)",
 };
-async function getAllBeefNoodleComments() {
+async function getAllBeefNoodleCommentDocumentSnapShots() {
   const querySnapshot = await getDocs(allBeefNoodleCommentsQuery);
   return querySnapshot.docs;
 }
 
-export default Home;
-
-function Home() {
-  const { data } = useSWR(beefNoodleCommentKey, getAllBeefNoodleComments, {
-    revalidateOnFocus: false,
+type IProps = {
+  beefNoodleCommentsJSON: BeefNoodleCommentJSON[];
+};
+export const getServerSideProps: GetServerSideProps<IProps> = async (ctx) => {
+  const documentSnapshots = await getAllBeefNoodleCommentDocumentSnapShots();
+  const beefNoodleCommentsJSON = documentSnapshots.map((documentSnapshot) => {
+    const beefNoodleCommentFireStore = documentSnapshot.data();
+    const id = documentSnapshot.id;
+    return Object.assign(beefNoodleCommentFireStore, {
+      id,
+      visitDate: beefNoodleCommentFireStore.visitDate.toMillis(),
+    });
   });
-  const { mutate } = useSWRConfig();
+  return { props: { beefNoodleCommentsJSON } };
+};
+
+export default function List({ beefNoodleCommentsJSON }: IProps) {
+  const beefNoodleComments: BeefNoodleComment[] = useMemo(
+    () =>
+      beefNoodleCommentsJSON.map((beefNoodleCommentJSON) =>
+        Object.assign(beefNoodleCommentJSON, {
+          visitDate: new Date(beefNoodleCommentJSON.visitDate),
+        })
+      ),
+    []
+  );
   const [commentModalOpen, toggleCommentModalOpen] = useState(false);
   const [beefNoodleCommentFormIns] = Form.useForm<BeefNoodleCommentForm>();
   const [isLogged, toggleIsLogged] = useState(false);
   const [addCommentLoading, toggleAddCommentLoading] = useState(false);
   const [notificationIns, Notification] = notification.useNotification();
-  const [selectedRowKey, setSelectedRowKey] = useState("");
-  const columns: ColumnsType<BeefNoodleComment> = [
-    {
-      title: "分數",
-      dataIndex: "score",
-      width: 100,
-      showSorterTooltip: false,
-      sorter: (a, b) => a.score - b.score,
-      render: (val: BeefNoodleComment["score"]) => (
-        <b className={styles.scoreTCell} style={scoreTCellStyle}>
-          {val}
-        </b>
-      ),
-    },
-    {
-      title: "店名",
-      dataIndex: "storeName",
-      width: 150,
-    },
-    {
-      title: "造訪日期",
-      dataIndex: "visitDate",
-      width: 120,
-      defaultSortOrder: "ascend",
-      showSorterTooltip: false,
-      sorter: (a, b) =>
-        Date.parse(a.visitDate.toISOString()) -
-        Date.parse(b.visitDate.toISOString()),
-      render: (val: BeefNoodleComment["visitDate"]) => val.toLocaleDateString(),
-    },
-    {
-      title: "品項",
-      dataIndex: "itemName",
-      width: 100,
-    },
-    {
-      title: "價格",
-      dataIndex: "itemPrice",
-      width: 100,
-      render: (val: BeefNoodleComment["itemPrice"]) => `$${val}`,
-    },
-    {
-      title: "圖片",
-      dataIndex: "images",
-      width: 120,
-      render: (val: BeefNoodleComment["images"], record) => (
-        <ImageDialogCarousel beefNoodleComment={record} />
-      ),
-    },
-    {
-      title: "麵條分數",
-      dataIndex: "noodleScore",
-      width: 100,
-      showSorterTooltip: false,
-      sorter: (a, b) => (a.noodleScore || 0) - (b.noodleScore || 0),
-      render: (val: BeefNoodleComment["noodleScore"]) => (
-        <b className={styles.scoreTCell}>{val}</b>
-      ),
-    },
-    {
-      title: "麵條描述",
-      dataIndex: "noodleDescription",
-      width: 300,
-    },
-    {
-      title: "牛肉分數",
-      dataIndex: "beefScore",
-      width: 100,
-      showSorterTooltip: false,
-      sorter: (a, b) => (a.beefScore || 0) - (b.beefScore || 0),
-      render: (val: BeefNoodleComment["beefScore"]) => (
-        <b className={styles.scoreTCell}>{val}</b>
-      ),
-    },
-    {
-      title: "牛肉描述",
-      dataIndex: "beefDescription",
-      width: 300,
-    },
-    {
-      title: "湯頭分數",
-      dataIndex: "soupScore",
-      width: 100,
-      showSorterTooltip: false,
-      sorter: (a, b) => (a.soupScore || 0) - (b.soupScore || 0),
-      render: (val: BeefNoodleComment["soupScore"]) => (
-        <b className={styles.scoreTCell}>{val}</b>
-      ),
-    },
-    {
-      title: "湯頭描述",
-      dataIndex: "soupDescription",
-      width: 300,
-    },
-    {
-      title: "整體描述",
-      dataIndex: "overallDescription",
-      width: 300,
-    },
-    {
-      title: "再次造訪",
-      dataIndex: "wantToVisitAgain",
-      width: 100,
-      showSorterTooltip: false,
-      className: styles.wantToVisitAgainCell,
-      sorter: (comment) => (comment.wantToVisitAgain ? 1 : -1),
-      render: (val: BeefNoodleComment["wantToVisitAgain"]) =>
-        val ? (
-          <CheckCircleFilled style={checkCircleStyle} />
-        ) : (
-          <CloseCircleFilled style={closeCircleStyle} />
-        ),
-    },
-    {
-      title: "牛筋分數",
-      dataIndex: "tendonScore",
-      width: 100,
-      showSorterTooltip: false,
-      sorter: (a, b) => (a.tendonScore || 0) - (b.tendonScore || 0),
-      render: (val: BeefNoodleComment["tendonScore"]) => (
-        <b className={styles.scoreTCell}>{val}</b>
-      ),
-    },
-    {
-      title: "牛筋描述",
-      dataIndex: "tendonDescription",
-      width: 300,
-    },
-    {
-      title: "牛肚分數",
-      dataIndex: "tripeScore",
-      width: 100,
-      showSorterTooltip: false,
-      sorter: (a, b) => (a.tripeScore || 0) - (b.tripeScore || 0),
-      render: (val: BeefNoodleComment["tripeScore"]) => (
-        <b className={styles.scoreTCell}>{val}</b>
-      ),
-    },
-    {
-      title: "牛肚描述",
-      dataIndex: "tripeDescription",
-      width: 300,
-    },
-  ];
+  const [selectedRowId, setSelectedRowId] = useState("");
   function saveBeefNoodleCommentToLocalStorage() {
     const beefNoodleComment = beefNoodleCommentFormIns.getFieldsValue();
     const beefNoodleCommentStr = JSON.stringify(beefNoodleComment);
     localStorage.setItem(beefNoodleCommentKey, beefNoodleCommentStr);
-  }
-  function handleLoginLogout() {
-    isLogged ? signOut(auth) : signInWithRedirect(auth, googleAuthProvider);
   }
   function handleCommentModalClose() {
     toggleCommentModalOpen(false);
@@ -311,53 +330,38 @@ function Home() {
     if (!comment.soupScore) delete comment.soupScore;
     if (!comment.soupDescription) delete comment.soupDescription;
     if (!comment.overallDescription) delete comment.overallDescription;
-    const documentId = await addDoc(beefNoodleCommentsCollectionRef, comment)
+    await addDoc(beefNoodleCommentsCollectionRef, comment)
       .then((documentReference) => {
-        notificationIns.success({ message: "新增評論成功" });
-        return documentReference.id;
+        notificationIns.success({ message: "新增評論成功，請重整頁面" });
+        beefNoodleCommentFormIns.resetFields();
+        localStorage.removeItem(beefNoodleCommentKey);
       })
-      .catch((err) => {
+      .catch((err) =>
         notificationIns.error({
           message:
             err.code === "permission-denied"
               ? "很抱歉，您無權限新增評論"
               : "新增評論失敗",
-        });
-        return "";
-      });
-    if (!documentId) return;
-    mutate(beefNoodleCommentKey);
-    beefNoodleCommentFormIns.resetFields();
-    localStorage.removeItem(beefNoodleCommentKey);
+        })
+      );
   }
-  const beefNoodleComments: BeefNoodleComment[] = useMemo(
-    () =>
-      (data || []).map((doc) => {
-        const docData = doc.data();
-        return {
-          ...docData,
-          key: doc.id,
-          visitDate: docData.visitDate.toDate(),
-        };
-      }),
-    [data]
-  );
   const headerMenuProps: MenuProps = useMemo(
     () => ({
-      items: [
-        {
-          label: isLogged ? "登出" : "登入",
-          onClick: handleLoginLogout,
-          key: "0",
-        },
-        {
-          label: "新增評論",
-          onClick: isLogged
-            ? () => toggleCommentModalOpen(true)
-            : handleLoginLogout,
-          key: "1",
-        },
-      ],
+      items: isLogged
+        ? [
+            {
+              label: "新增評論",
+              onClick: () => toggleCommentModalOpen(true),
+              key: "1",
+            },
+          ]
+        : [
+            {
+              label: "登入",
+              onClick: () => signInWithRedirect(auth, googleAuthProvider),
+              key: "1",
+            },
+          ],
     }),
     [isLogged]
   );
@@ -400,18 +404,8 @@ function Home() {
     // change location hash instantly to trigger page scroll.
     location.hash = "";
     location.hash = rowKey;
-    setSelectedRowKey(rowKey);
+    setSelectedRowId(rowKey);
   }, [beefNoodleComments]);
-  // useEffect(() => {
-  //   function beforeUnload(e: BeforeUnloadEvent) {
-  //     saveBeefNoodleCommentToLocalStorage();
-  //     if (!commentModalOpen) return;
-  //     e.preventDefault();
-  //     e.returnValue = "non-empty string";
-  //   }
-  //   addEventListener("beforeunload", beforeUnload);
-  //   return () => removeEventListener("beforeunload", beforeUnload);
-  // }, [commentModalOpen]);
   return (
     <>
       <Head>
@@ -461,20 +455,21 @@ function Home() {
           columns={columns}
           pagination={false}
           scroll={tableScroll}
+          rowKey="id"
           onRow={(beefNoodleComment) => ({
-            id: beefNoodleComment.key,
+            id: beefNoodleComment.id,
             className:
-              selectedRowKey === beefNoodleComment.key
+              selectedRowId === beefNoodleComment.id
                 ? "ant-table-row-selected"
                 : "",
             onClick: (e) => {
-              location.hash = beefNoodleComment.key;
+              location.hash = beefNoodleComment.id;
               history.pushState(
                 "",
                 "",
-                `?storeName=${beefNoodleComment.storeName}#${beefNoodleComment.key}`
+                `?storeName=${beefNoodleComment.storeName}#${beefNoodleComment.id}`
               );
-              setSelectedRowKey(beefNoodleComment.key);
+              setSelectedRowId(beefNoodleComment.id);
             },
           })}
         ></Table>
