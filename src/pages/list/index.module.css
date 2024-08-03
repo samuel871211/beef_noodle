@@ -15,7 +15,7 @@
 .table {
   word-break: keep-all;
 }
-.table td:nth-child(1) {
+/* .table td:nth-child(1) {
   width: 100px;
   max-width: 100px;
 }
@@ -86,7 +86,7 @@
 .table td:nth-child(18) {
   width: 300px;
   max-width: 300px;
-}
+} */
 .table th {
   white-space: nowrap;
 }

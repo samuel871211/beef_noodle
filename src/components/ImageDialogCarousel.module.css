@@ -1,3 +1,10 @@
 .container {
   text-align: center;
 }
+.imageContainer {
+  position: relative;
+  aspect-ratio: 3 / 4;
+}
+.imageContainer img {
+  object-fit: contain;
+}

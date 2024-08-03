@@ -80,6 +80,12 @@
   max-height: 100%;
   border-radius: 6px;
   box-shadow: 5px 5px rgba(0, 0, 0, 0.2);
+  /* override next/image inline-style */
+  position: static !important;
+  width: unset !important;
+  height: unset !important;
+  inset: unset !important;
+  color: unset !important;
 }
 /* .swiperSlide img + .swiperLazyPreloader {
   display: none;
@@ -121,3 +127,15 @@
   font-weight: 500;
   flex-grow: 1;
 } */
+.spinBackDrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff6e5;
+}

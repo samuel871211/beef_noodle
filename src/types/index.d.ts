@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { UploadProps } from "antd";
 
 export type BeefNoodleComment = {
-  key: string;
+  id: string;
   storeName: string;
   score: number;
   visitDate: Date;
@@ -34,7 +34,7 @@ export type BeefNoodleComment = {
 
 export type BeefNoodleCommentForm = Omit<
   BeefNoodleComment,
-  "visitDate" | "key" | "images"
+  "visitDate" | "images"
 > & {
   visitDate: dayjs.Dayjs;
   images: NonNullable<UploadProps["fileList"]>;
@@ -42,7 +42,11 @@ export type BeefNoodleCommentForm = Omit<
 
 export type BeefNoodleCommentFirestore = Omit<
   BeefNoodleComment,
-  "visitDate" | "key"
+  "visitDate"
 > & {
   visitDate: Timestamp;
+};
+
+export type BeefNoodleCommentJSON = Omit<BeefNoodleComment, "visitDate"> & {
+  visitDate: number;
 };
