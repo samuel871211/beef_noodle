@@ -29,7 +29,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { getDocs, addDoc, Timestamp } from "firebase/firestore/lite";
-import { signInWithRedirect } from "firebase/auth";
+import { signInWithPopup } from "firebase/auth";
 import dayjs from "dayjs";
 
 // Local application/library specific imports.
@@ -359,7 +359,7 @@ export default function List({ beefNoodleCommentsJSON }: IProps) {
         : [
             {
               label: "登入",
-              onClick: () => signInWithRedirect(auth, googleAuthProvider),
+              onClick: () => signInWithPopup(auth, googleAuthProvider),
               key: "1",
             },
           ],

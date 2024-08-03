@@ -2,6 +2,12 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.17.4 (2024-08-03)
+
+### fix
+
+- `signInWithRedirect` 搭配 google auth 似乎被棄用了，改成 `signInWithPopup` 試試看
+
 ## 0.17.3 (2024-08-03)
 
 ### chore
