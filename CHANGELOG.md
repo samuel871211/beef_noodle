@@ -2,6 +2,12 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 
+## 0.17.2 (2024-08-03)
+
+### fix
+
+- 修正可能會造成 hydration error 的情境
+
 ## 0.17.1 (2024-08-03)
 
 ### fix

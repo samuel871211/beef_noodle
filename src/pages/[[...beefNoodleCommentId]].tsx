@@ -164,7 +164,9 @@ const DraggableCarousel: FC<IProps> = ({ beefNoodleCommentsJSON }) => {
                     </Title>
                     <Text className={styles.visitDate}>
                       造訪日期:{" "}
-                      {beefNoodleComment.visitDate.toLocaleDateString("zh-TW")}
+                      {beefNoodleComment.visitDate
+                        .toISOString()
+                        .substring(0, 10)}
                     </Text>
                   </div>
                   <div className={styles.tags}>

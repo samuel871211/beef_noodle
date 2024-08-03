@@ -123,7 +123,7 @@ const columns: ColumnsType<BeefNoodleComment> = [
       Date.parse(a.visitDate.toISOString()) -
       Date.parse(b.visitDate.toISOString()),
     render: (val: BeefNoodleComment["visitDate"]) =>
-      val.toLocaleDateString("zh-TW"),
+      val.toISOString().substring(0, 10),
   },
   {
     title: "品項",
