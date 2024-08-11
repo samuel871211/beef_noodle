@@ -36,6 +36,7 @@ import {
 import Share from "../components/Share";
 import Image from "next/image";
 import { GetServerSideProps } from "next";
+import Head from "next/head";
 
 let isOuterSwiperSliding = false;
 const { Title, Text } = Typography;
@@ -64,8 +65,10 @@ async function getAllBeefNoodleCommentDocumentSnapShots() {
 
 type IProps = {
   beefNoodleCommentsJSON: BeefNoodleCommentJSON[];
+  initBeefNoodleCommentId: string;
 };
 export const getServerSideProps: GetServerSideProps<IProps> = async (ctx) => {
+  const { beefNoodleCommentId } = ctx.query;
   const documentSnapshots = await getAllBeefNoodleCommentDocumentSnapShots();
   const beefNoodleCommentsJSON = documentSnapshots.map((documentSnapshot) => {
     const beefNoodleCommentFireStore = documentSnapshot.data();
@@ -75,10 +78,18 @@ export const getServerSideProps: GetServerSideProps<IProps> = async (ctx) => {
       visitDate: beefNoodleCommentFireStore.visitDate.toMillis(),
     });
   });
-  return { props: { beefNoodleCommentsJSON } };
+  return {
+    props: {
+      beefNoodleCommentsJSON,
+      initBeefNoodleCommentId: String(beefNoodleCommentId),
+    },
+  };
 };
 
-const DraggableCarousel: FC<IProps> = ({ beefNoodleCommentsJSON }) => {
+const DraggableCarousel: FC<IProps> = ({
+  beefNoodleCommentsJSON,
+  initBeefNoodleCommentId,
+}) => {
   const [outerSwiperIns, setOuterSwiperIns] = useState<SwiperIns | null>(null);
   const beefNoodleComments: BeefNoodleComment[] = useMemo(
     () =>
@@ -89,8 +100,56 @@ const DraggableCarousel: FC<IProps> = ({ beefNoodleCommentsJSON }) => {
       ),
     []
   );
+  const activeIndex = useMemo(() => {
+    const index = beefNoodleComments.findIndex(
+      (b) => b.id === initBeefNoodleCommentId
+    );
+    return index === -1 ? 0 : index;
+  }, [beefNoodleComments]);
   return (
     <ConfigProvider theme={theme}>
+      <Head>
+        <title>{`${beefNoodleComments[activeIndex].storeName} - 雙北牛肉麵評論`}</title>
+        <meta
+          name="description"
+          content={beefNoodleComments[activeIndex].beefDescription}
+        />
+        <meta
+          name="title"
+          content={`${beefNoodleComments[activeIndex].storeName} - 雙北牛肉麵評論`}
+        />
+        <meta
+          property="og:title"
+          content={`${beefNoodleComments[activeIndex].storeName} - 雙北牛肉麵評論`}
+        />
+        <meta
+          property="og:url"
+          content={`https://beef-noodle-fe137.web.app/${beefNoodleComments[activeIndex].id}`}
+        />
+        <meta
+          property="og:image"
+          content={beefNoodleComments[activeIndex].images[0]}
+        />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta
+          property="og:description"
+          content={beefNoodleComments[activeIndex].beefDescription}
+        />
+        <meta
+          property="og:site_name"
+          content={`${beefNoodleComments[activeIndex].storeName} - 雙北牛肉麵評論`}
+        />
+        <meta name="twitter:card" content="summary" />
+        <meta
+          name="twitter:title"
+          content={`${beefNoodleComments[activeIndex].storeName} - 雙北牛肉麵評論`}
+        />
+        <meta
+          name="twitter:description"
+          content={beefNoodleComments[activeIndex].beefDescription}
+        />
+      </Head>
       <main className={styles.main}>
         <header></header>
         <div className={styles.carouselContainer}>
@@ -100,7 +159,10 @@ const DraggableCarousel: FC<IProps> = ({ beefNoodleCommentsJSON }) => {
             history={history}
             modules={outerModules}
             className={styles.outerSwiper}
-            onSlideChange={() => (isOuterSwiperSliding = true)}
+            onSlideChange={(swiper) => {
+              isOuterSwiperSliding = true;
+              document.title = beefNoodleComments[swiper.activeIndex].storeName;
+            }}
             onSlideChangeTransitionEnd={() => (isOuterSwiperSliding = false)}
             onSwiper={(swiper) => setOuterSwiperIns(swiper)}
           >
@@ -147,7 +209,7 @@ const DraggableCarousel: FC<IProps> = ({ beefNoodleCommentsJSON }) => {
                         alt=""
                         loading="lazy"
                         fill
-                        sizes="100vw"
+                        sizes="(max-width: 500px) 100vw, 50vw"
                       ></Image>
                       <div className={styles.swiperLazyPreloader}>
                         <Skeleton.Node active style={skeletonNodeCss}>

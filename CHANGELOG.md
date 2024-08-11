@@ -1,6 +1,13 @@
 ## todo
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
+- img cache
+
+## 0.18.0 (2024-08-11)
+
+### feat
+
+- 首頁新增 meta
 
 ## 0.17.4 (2024-08-03)
 

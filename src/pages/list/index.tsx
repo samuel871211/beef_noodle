@@ -419,7 +419,7 @@ export default function List({ beefNoodleCommentsJSON }: IProps) {
         <meta property="og:title" content="雙北牛肉麵評論" />
         <meta
           property="og:url"
-          content="https://nmdap.udn.com.tw/test/beef_noodle/"
+          content="https://beef-noodle-fe137.web.app/list"
         />
         <meta
           property="og:image"
