@@ -2,6 +2,13 @@
 
 - custom classNames 的優先順序 低於 antd 原生的 css classNames（可用 inline style, !important）
 - img cache
+- firestore cache(?
+
+## 0.18.1 (2024-08-20)
+
+### fix
+
+- 圖片上傳失敗的錯誤捕捉
 
 ## 0.18.0 (2024-08-11)
 

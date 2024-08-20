@@ -308,10 +308,14 @@ export default function List({ beefNoodleCommentsJSON }: IProps) {
       );
       return uploadBytes(storageRef, imageFile.originFileObj);
     });
-    /**
-     * @todo what if some promises reject?
-     */
     const uploadImageResponses = await Promise.allSettled(uploadImageRequests);
+    const containFailedResponse = uploadImageResponses.some(
+      (u) =>
+        u.status === "rejected" ||
+        (u.status === "fulfilled" && u.value === false)
+    );
+    if (containFailedResponse)
+      return notificationIns.error({ message: "上傳圖片失敗" });
     const getImageURLRequests = uploadImageResponses.map(
       (res) =>
         res.status === "fulfilled" && res.value && getDownloadURL(res.value.ref)
