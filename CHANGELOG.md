@@ -4,6 +4,12 @@
 - img cache
 - firestore cache(?
 
+## 0.18.3 (2024-09-17)
+
+### chore
+
+- `getDocs` 先切回 lite 的(?
+
 ## 0.18.2 (2024-09-17)
 
 ### chore

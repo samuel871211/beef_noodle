@@ -28,8 +28,7 @@ import {
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
-import { addDoc, Timestamp } from "firebase/firestore/lite";
-import { getDocs } from "firebase/firestore";
+import { getDocs, addDoc, Timestamp } from "firebase/firestore/lite";
 import { signInWithPopup } from "firebase/auth";
 import dayjs from "dayjs";
 

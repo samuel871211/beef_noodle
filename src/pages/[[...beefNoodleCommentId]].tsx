@@ -11,7 +11,7 @@ import {
   History,
 } from "swiper/modules";
 import { Swiper as SwiperIns, SwiperOptions } from "swiper/types";
-import { getDocs } from "firebase/firestore";
+import { getDocs } from "firebase/firestore/lite";
 import { allBeefNoodleCommentsQuery } from "../utils/firebase";
 import {
   BeefNoodleComment,
