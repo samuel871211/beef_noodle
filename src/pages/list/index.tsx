@@ -28,7 +28,8 @@ import {
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
-import { getDocs, addDoc, Timestamp } from "firebase/firestore/lite";
+import { addDoc, Timestamp } from "firebase/firestore/lite";
+import { getDocs } from "firebase/firestore";
 import { signInWithPopup } from "firebase/auth";
 import dayjs from "dayjs";
 
@@ -244,7 +245,9 @@ const tableScroll: TableProps<BeefNoodleComment>["scroll"] = {
   y: "calc(100 * var(--vh) - 64px - 56px)",
 };
 async function getAllBeefNoodleCommentDocumentSnapShots() {
-  const querySnapshot = await getDocs(allBeefNoodleCommentsQuery);
+  const querySnapshot = await getDocs<BeefNoodleCommentFirestore>(
+    allBeefNoodleCommentsQuery
+  );
   return querySnapshot.docs;
 }
 
@@ -423,11 +426,11 @@ export default function List({ beefNoodleCommentsJSON }: IProps) {
         <meta property="og:title" content="雙北牛肉麵評論" />
         <meta
           property="og:url"
-          content="https://beef-noodle-fe137.web.app/list"
+          content="https://beef-noodle-brown.vercel.app/list"
         />
         <meta
           property="og:image"
-          content="https://firebasestorage.googleapis.com/v0/b/beef-noodle-fe137.appspot.com/o/20230625%2F20230625_124910.jpg?alt=media&token=392f3e72-26d7-4e96-9d42-022ee0c08249"
+          content="https://firebasestorage.googleapis.com/v0/b/beef-noodle-v2.appspot.com/o/20230625%2F20230625_124910.jpg?alt=media&token=a8a4ec9d-4516-4dd7-82a9-46205e2afb80"
         />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />

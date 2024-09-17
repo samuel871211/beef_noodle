@@ -11,9 +11,13 @@ import {
   History,
 } from "swiper/modules";
 import { Swiper as SwiperIns, SwiperOptions } from "swiper/types";
-import { getDocs } from "firebase/firestore/lite";
+import { getDocs } from "firebase/firestore";
 import { allBeefNoodleCommentsQuery } from "../utils/firebase";
-import { BeefNoodleComment, BeefNoodleCommentJSON } from "../types";
+import {
+  BeefNoodleComment,
+  BeefNoodleCommentFirestore,
+  BeefNoodleCommentJSON,
+} from "../types";
 // import useSWR from "swr";
 // import useSWRImmutable from "swr/immutable";
 import {
@@ -59,7 +63,9 @@ const outerModules: SwiperOptions["modules"] = [Navigation, History];
 const innerModules: SwiperOptions["modules"] = [Pagination];
 const history: SwiperOptions["history"] = { key: "" };
 async function getAllBeefNoodleCommentDocumentSnapShots() {
-  const querySnapshot = await getDocs(allBeefNoodleCommentsQuery);
+  const querySnapshot = await getDocs<BeefNoodleCommentFirestore>(
+    allBeefNoodleCommentsQuery
+  );
   return querySnapshot.docs;
 }
 
@@ -109,45 +115,45 @@ const DraggableCarousel: FC<IProps> = ({
   return (
     <ConfigProvider theme={theme}>
       <Head>
-        <title>{`${beefNoodleComments[activeIndex].storeName} - 雙北牛肉麵評論`}</title>
+        <title>{`${beefNoodleComments[activeIndex]?.storeName} - 雙北牛肉麵評論`}</title>
         <meta
           name="description"
-          content={beefNoodleComments[activeIndex].beefDescription}
+          content={beefNoodleComments[activeIndex]?.beefDescription}
         />
         <meta
           name="title"
-          content={`${beefNoodleComments[activeIndex].storeName} - 雙北牛肉麵評論`}
+          content={`${beefNoodleComments[activeIndex]?.storeName} - 雙北牛肉麵評論`}
         />
         <meta
           property="og:title"
-          content={`${beefNoodleComments[activeIndex].storeName} - 雙北牛肉麵評論`}
+          content={`${beefNoodleComments[activeIndex]?.storeName} - 雙北牛肉麵評論`}
         />
         <meta
           property="og:url"
-          content={`https://beef-noodle-fe137.web.app/${beefNoodleComments[activeIndex].id}`}
+          content={`https://beef-noodle-brown.vercel.app/${beefNoodleComments[activeIndex]?.id}`}
         />
         <meta
           property="og:image"
-          content={beefNoodleComments[activeIndex].images[0]}
+          content={beefNoodleComments[activeIndex]?.images[0]}
         />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta
           property="og:description"
-          content={beefNoodleComments[activeIndex].beefDescription}
+          content={beefNoodleComments[activeIndex]?.beefDescription}
         />
         <meta
           property="og:site_name"
-          content={`${beefNoodleComments[activeIndex].storeName} - 雙北牛肉麵評論`}
+          content={`${beefNoodleComments[activeIndex]?.storeName} - 雙北牛肉麵評論`}
         />
         <meta name="twitter:card" content="summary" />
         <meta
           name="twitter:title"
-          content={`${beefNoodleComments[activeIndex].storeName} - 雙北牛肉麵評論`}
+          content={`${beefNoodleComments[activeIndex]?.storeName} - 雙北牛肉麵評論`}
         />
         <meta
           name="twitter:description"
-          content={beefNoodleComments[activeIndex].beefDescription}
+          content={beefNoodleComments[activeIndex]?.beefDescription}
         />
       </Head>
       <main className={styles.main}>

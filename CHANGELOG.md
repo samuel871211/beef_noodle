@@ -4,6 +4,14 @@
 - img cache
 - firestore cache(?
 
+## 0.18.2 (2024-09-17)
+
+### chore
+
+- firebase project 搬家
+- `getDocs` 改用完整版的
+- deploy 指令移除
+
 ## 0.18.1 (2024-08-20)
 
 ### fix
