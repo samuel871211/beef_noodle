@@ -28,7 +28,7 @@ import {
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
-import { getDocs, addDoc, Timestamp } from "firebase/firestore/lite";
+import { addDoc, Timestamp } from "firebase/firestore/lite";
 import { signInWithPopup } from "firebase/auth";
 import dayjs from "dayjs";
 
@@ -39,16 +39,14 @@ import type {
   BeefNoodleComment,
   BeefNoodleCommentFirestore,
   BeefNoodleCommentForm,
-  BeefNoodleCommentJSON,
 } from "../../types";
 import ImageDialogCarousel from "../../components/ImageDialogCarousel";
 import {
   auth,
   googleAuthProvider,
-  allBeefNoodleCommentsQuery,
   beefNoodleCommentsCollectionRef,
 } from "../../utils/firebase";
-import { GetServerSideProps } from "next";
+import { useAllBeefNoodleComments } from "../../hooks/useBeefNoodleComments";
 
 // Stateless vars declare.
 const beefNoodleCommentKey = "beefNoodleComment";
@@ -99,7 +97,6 @@ const columns: ColumnsType<BeefNoodleComment> = [
     title: "店名",
     dataIndex: "storeName",
     width: 150,
-    fixed: "left",
   },
   {
     title: "分數",
@@ -243,39 +240,11 @@ const tableScroll: TableProps<BeefNoodleComment>["scroll"] = {
   x: columns.map<number>((c) => c.width as number).reduce((a, b) => a + b, 0),
   y: "calc(100 * var(--vh) - 64px - 56px)",
 };
-async function getAllBeefNoodleCommentDocumentSnapShots() {
-  const querySnapshot = await getDocs<BeefNoodleCommentFirestore>(
-    allBeefNoodleCommentsQuery
-  );
-  return querySnapshot.docs;
-}
+const fallbackData: BeefNoodleComment[] = [];
 
-type IProps = {
-  beefNoodleCommentsJSON: BeefNoodleCommentJSON[];
-};
-export const getServerSideProps: GetServerSideProps<IProps> = async (ctx) => {
-  const documentSnapshots = await getAllBeefNoodleCommentDocumentSnapShots();
-  const beefNoodleCommentsJSON = documentSnapshots.map((documentSnapshot) => {
-    const beefNoodleCommentFireStore = documentSnapshot.data();
-    const id = documentSnapshot.id;
-    return Object.assign(beefNoodleCommentFireStore, {
-      id,
-      visitDate: beefNoodleCommentFireStore.visitDate.toMillis(),
-    });
-  });
-  return { props: { beefNoodleCommentsJSON } };
-};
-
-export default function List({ beefNoodleCommentsJSON }: IProps) {
-  const beefNoodleComments: BeefNoodleComment[] = useMemo(
-    () =>
-      beefNoodleCommentsJSON.map((beefNoodleCommentJSON) =>
-        Object.assign(beefNoodleCommentJSON, {
-          visitDate: new Date(beefNoodleCommentJSON.visitDate),
-        })
-      ),
-    []
-  );
+export default function List() {
+  const { data } = useAllBeefNoodleComments();
+  const beefNoodleComments = data || fallbackData;
   const [commentModalOpen, toggleCommentModalOpen] = useState(false);
   const [beefNoodleCommentFormIns] = Form.useForm<BeefNoodleCommentForm>();
   const [isLogged, toggleIsLogged] = useState(false);
@@ -480,7 +449,6 @@ export default function List({ beefNoodleCommentsJSON }: IProps) {
             },
           })}
         ></Table>
-
         <Modal
           title="新增評論"
           footer={null}

@@ -1,12 +1,12 @@
 // Related third party imports.
 import { FirebaseOptions, initializeApp } from "firebase/app";
-import { getFirestore, query, orderBy } from "firebase/firestore/lite";
+import { getDocs, getFirestore, query, orderBy } from "firebase/firestore/lite";
 import { getStorage } from "firebase/storage";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // Local application/library specific imports.
 import getCollection from "../utils/getCollection";
-import { BeefNoodleCommentFirestore } from "../types";
+import { BeefNoodleCommentFirestore, BeefNoodleComment } from "../types";
 
 // Stateless vars declare.
 
@@ -31,6 +31,16 @@ const allBeefNoodleCommentsQuery = query(
 const firebaseStorage = getStorage(firebaseApp);
 const auth = getAuth();
 const googleAuthProvider = new GoogleAuthProvider();
+async function getAllBeefNoodleComments(): Promise<BeefNoodleComment[]> {
+  const querySnapshot = await getDocs(allBeefNoodleCommentsQuery);
+  return querySnapshot.docs.map((doc) => {
+    const data = doc.data();
+    return Object.assign(data, {
+      id: doc.id,
+      visitDate: data.visitDate.toDate(),
+    });
+  });
+}
 
 export {
   allBeefNoodleCommentsQuery,
@@ -38,4 +48,5 @@ export {
   firebaseStorage,
   auth,
   googleAuthProvider,
+  getAllBeefNoodleComments,
 };

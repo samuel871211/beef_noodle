@@ -4,6 +4,13 @@
 - img cache
 - firestore cache(?
 
+## 0.19.0 (2024-09-21)
+
+### chore
+
+- 新增 dev 套件 `@next/bundle-analyzer`
+- 改成 SSG（`Image` 換成 `img`，`Swiper` 改用 `HashNavigation`）
+
 ## 0.18.3 (2024-09-17)
 
 ### chore

@@ -2,10 +2,15 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["firebasestorage.googleapis.com"]
-  }
-  // output: 'export',
-  // trailingSlash: true
+    domains: ["firebasestorage.googleapis.com"],
+    unoptimized: true
+  },
+  output: 'export',
+  trailingSlash: true
 }
 
-module.exports = nextConfig
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+ 
+module.exports = withBundleAnalyzer(nextConfig)
