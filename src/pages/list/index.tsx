@@ -540,6 +540,10 @@ export default function List() {
               <Upload
                 multiple
                 listType="picture-card"
+                customRequest={(opt) => {
+                  typeof opt.onSuccess === "function" &&
+                    opt.onSuccess(opt.file);
+                }}
                 showUploadList={showUploadList}
               >
                 上傳圖片
