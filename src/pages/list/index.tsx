@@ -27,7 +27,13 @@ import {
   MenuOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import {
+  getDownloadURL,
+  getStorage,
+  list,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
 import { addDoc, Timestamp } from "firebase/firestore/lite";
 import { signInWithPopup } from "firebase/auth";
 import dayjs from "dayjs";
@@ -241,9 +247,45 @@ const tableScroll: TableProps<BeefNoodleComment>["scroll"] = {
   y: "calc(100 * var(--vh) - 64px - 56px)",
 };
 const fallbackData: BeefNoodleComment[] = [];
+function getYYYYMMDD(inputDate: BeefNoodleCommentForm["visitDate"]) {
+  const year = inputDate.year();
+  const month = String(inputDate.month() + 1).padStart(2, "0");
+  const date = String(inputDate.date()).padStart(2, "0");
+  return `${year}${month}${date}`;
+}
+/**
+ * storage folder name 命名規則:
+ *
+ * `YYYYMMDD`
+ *
+ * `YYYYMMDD_1`
+ *
+ * `YYYYMMDD_2`
+ *
+ * 依此類推
+ */
+async function getStorageFolderName(inputFolderName: string): Promise<string> {
+  const folderRef = ref(firebaseStorage, inputFolderName);
+  const listResult = await list(folderRef, { maxResults: 1 });
+  const isEmptyFolder =
+    listResult.prefixes.length === 0 && listResult.items.length === 0;
+  if (isEmptyFolder) return inputFolderName;
+  const [YYYYMMDD, strIndex] = inputFolderName.split("_");
+  const index = parseInt(strIndex);
+  if (!strIndex) return getStorageFolderName(`${YYYYMMDD}_1`);
+  if (!Number.isInteger(index))
+    throw new Error(
+      `[function getStorageFolderName] invalid folder name ${inputFolderName}`
+    );
+  if (index >= 10)
+    throw new Error(
+      `[function getStorageFolderName] max recursion exceeded. ${inputFolderName}`
+    );
+  return getStorageFolderName(`${YYYYMMDD}_${index + 1}`);
+}
 
 export default function List() {
-  const { data } = useAllBeefNoodleComments();
+  const { data, mutate } = useAllBeefNoodleComments();
   const beefNoodleComments = data || fallbackData;
   const [commentModalOpen, toggleCommentModalOpen] = useState(false);
   const [beefNoodleCommentFormIns] = Form.useForm<BeefNoodleCommentForm>();
@@ -267,10 +309,10 @@ export default function List() {
       visitDate: Timestamp.fromMillis(visitDate.valueOf()),
       images: [],
     };
-    const year = visitDate.year();
-    const month = String(visitDate.month() + 1).padStart(2, "0");
-    const date = String(visitDate.date()).padStart(2, "0");
-    const folderName = `${year}${month}${date}`;
+    const YYYYMMDD = getYYYYMMDD(visitDate);
+    const shouldContinue = confirm(`請確認造訪日期為 ${YYYYMMDD}？`);
+    if (!shouldContinue) return;
+    const folderName = await getStorageFolderName(YYYYMMDD);
     const uploadImageRequests = images.map((imageFile) => {
       if (!imageFile.originFileObj) return false;
       const storageRef = ref(
@@ -307,8 +349,9 @@ export default function List() {
     if (!comment.soupDescription) delete comment.soupDescription;
     if (!comment.overallDescription) delete comment.overallDescription;
     await addDoc(beefNoodleCommentsCollectionRef, comment)
-      .then((documentReference) => {
-        notificationIns.success({ message: "新增評論成功，請重整頁面" });
+      .then(() => {
+        notificationIns.success({ message: "新增評論成功" });
+        mutate(beefNoodleComments, { revalidate: true });
         beefNoodleCommentFormIns.resetFields();
         localStorage.removeItem(beefNoodleCommentKey);
       })
