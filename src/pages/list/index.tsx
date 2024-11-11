@@ -45,6 +45,7 @@ import type {
   BeefNoodleComment,
   BeefNoodleCommentFirestore,
   BeefNoodleCommentForm,
+  BeefNoodleCommentLocalStorage,
 } from "../../types";
 import ImageDialogCarousel from "../../components/ImageDialogCarousel";
 import {
@@ -296,6 +297,18 @@ export default function List() {
   function saveBeefNoodleCommentToLocalStorage() {
     const beefNoodleComment = beefNoodleCommentFormIns.getFieldsValue();
     const beefNoodleCommentStr = JSON.stringify(beefNoodleComment);
+    const filteredBeefNoodleComment = JSON.parse(
+      beefNoodleCommentStr
+    ) as BeefNoodleCommentLocalStorage;
+
+    if (Object.keys(filteredBeefNoodleComment).length < 3) return;
+    if (
+      Object.keys(filteredBeefNoodleComment).length === 3 &&
+      filteredBeefNoodleComment.images.length === 0 &&
+      typeof filteredBeefNoodleComment.visitDate === "string" &&
+      typeof filteredBeefNoodleComment.wantToVisitAgain === "boolean"
+    )
+      return;
     localStorage.setItem(beefNoodleCommentKey, beefNoodleCommentStr);
   }
   function handleCommentModalClose() {

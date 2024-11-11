@@ -4,6 +4,12 @@
 - img cache
 - firestore cache(?
 
+## 0.20.1 (2024-11-11)
+
+### fix
+
+- `saveBeefNoodleCommentToLocalStorage` 資料寫入前先檢核，不合法則不寫入，避免真資料被洗掉
+
 ## 0.20.0 (2024-10-06)
 
 ### feat

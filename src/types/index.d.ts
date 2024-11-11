@@ -50,3 +50,10 @@ export type BeefNoodleCommentFirestore = Omit<
 export type BeefNoodleCommentJSON = Omit<BeefNoodleComment, "visitDate"> & {
   visitDate: number;
 };
+
+export type BeefNoodleCommentLocalStorage = Omit<
+  BeefNoodleComment,
+  "visitDate"
+> & {
+  visitDate: string;
+};
