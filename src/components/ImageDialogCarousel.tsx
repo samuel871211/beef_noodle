@@ -6,6 +6,7 @@ import { RightOutlined, LeftOutlined } from "@ant-design/icons";
 // Local application/library specific imports.
 import styles from "./ImageDialogCarousel.module.css";
 import type { BeefNoodleComment } from "../types";
+import generateImageURL from "../utils/generateImageURL";
 
 // Stateless vars declare.
 
@@ -28,9 +29,9 @@ function ImageDialogCarousel(props: { beefNoodleComment: BeefNoodleComment }) {
           prevArrow={<LeftOutlined />}
           nextArrow={<RightOutlined />}
         >
-          {beefNoodleComment.images.map((imageURL) => (
-            <div key={imageURL} className={styles.imageContainer}>
-              <img src={imageURL} alt="" />
+          {beefNoodleComment.images.map((imagePath) => (
+            <div key={imagePath} className={styles.imageContainer}>
+              <img src={generateImageURL(imagePath)} alt="" />
             </div>
           ))}
         </Carousel>

@@ -27,13 +27,7 @@ import {
   MenuOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import {
-  getDownloadURL,
-  getStorage,
-  list,
-  ref,
-  uploadBytes,
-} from "firebase/storage";
+import { getStorage, list, ref, uploadBytes } from "firebase/storage";
 import { addDoc, Timestamp } from "firebase/firestore/lite";
 import { signInWithPopup } from "firebase/auth";
 import dayjs from "dayjs";
@@ -286,11 +280,11 @@ async function getStorageFolderName(inputFolderName: string): Promise<string> {
 }
 
 export default function List() {
+  const [isLogged, toggleIsLogged] = useState(false);
   const { data, mutate } = useAllBeefNoodleComments();
   const beefNoodleComments = data || fallbackData;
   const [commentModalOpen, toggleCommentModalOpen] = useState(false);
   const [beefNoodleCommentFormIns] = Form.useForm<BeefNoodleCommentForm>();
-  const [isLogged, toggleIsLogged] = useState(false);
   const [addCommentLoading, toggleAddCommentLoading] = useState(false);
   const [notificationIns, Notification] = notification.useNotification();
   const [selectedRowId, setSelectedRowId] = useState("");
@@ -335,21 +329,21 @@ export default function List() {
       return uploadBytes(storageRef, imageFile.originFileObj);
     });
     const uploadImageResponses = await Promise.allSettled(uploadImageRequests);
-    const containFailedResponse = uploadImageResponses.some(
+    const hasFailedResponse = uploadImageResponses.some(
       (u) =>
         u.status === "rejected" ||
         (u.status === "fulfilled" && u.value === false)
     );
-    if (containFailedResponse)
+    if (hasFailedResponse)
       return notificationIns.error({ message: "上傳圖片失敗" });
-    const getImageURLRequests = uploadImageResponses.map(
-      (res) =>
-        res.status === "fulfilled" && res.value && getDownloadURL(res.value.ref)
-    );
-    const getImageURLResponses = await Promise.allSettled(getImageURLRequests);
-    comment.images = getImageURLResponses
-      .map((res) => res.status === "fulfilled" && res.value)
-      .filter((res) => typeof res === "string") as string[];
+    comment.images = uploadImageResponses
+      .map(
+        (res, idx) =>
+          res.status === "fulfilled" &&
+          res.value &&
+          `${folderName}/${images[idx].name}`
+      )
+      .filter((imagePath) => typeof imagePath === "string") as string[];
     if (!comment.noodleScore) delete comment.noodleScore;
     if (!comment.noodleDescription) delete comment.noodleDescription;
     if (!comment.beefScore) delete comment.beefScore;

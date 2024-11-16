@@ -26,6 +26,7 @@ import {
 import Share from "../components/Share";
 import Head from "next/head";
 import { useAllBeefNoodleComments } from "../hooks/useBeefNoodleComments";
+import generateImageURL from "../utils/generateImageURL";
 
 let isOuterSwiperSliding = false;
 const { Title, Text } = Typography;
@@ -136,12 +137,16 @@ const DraggableCarousel: FC = () => {
                         : swiper.slidePrev();
                     }}
                   >
-                    {beefNoodleComment.images.map((imageURL) => (
+                    {beefNoodleComment.images.map((imagePath) => (
                       <SwiperSlide
-                        key={imageURL}
+                        key={imagePath}
                         className={styles.swiperSlide}
                       >
-                        <img src={imageURL} alt="" loading="lazy" />
+                        <img
+                          src={generateImageURL(imagePath)}
+                          alt=""
+                          loading="lazy"
+                        />
                         <div className={styles.swiperLazyPreloader}>
                           <Skeleton.Node active style={skeletonNodeCss}>
                             <div></div>

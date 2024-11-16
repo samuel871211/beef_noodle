@@ -4,6 +4,12 @@
 - img cache
 - firestore cache(?
 
+## 0.21.0 (2024-11-16)
+
+### feat
+
+- 調整 `beefNoodleComment.images` 的格式，從 full URL 變成 path
+
 ## 0.20.1 (2024-11-11)
 
 ### fix
