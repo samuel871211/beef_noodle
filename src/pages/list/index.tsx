@@ -290,12 +290,16 @@ export default function List() {
   const [selectedRowId, setSelectedRowId] = useState("");
   function saveBeefNoodleCommentToLocalStorage() {
     const beefNoodleComment = beefNoodleCommentFormIns.getFieldsValue();
-    const beefNoodleCommentStr = JSON.stringify(beefNoodleComment);
+    const beefNoodleCommentWithoutImages: typeof beefNoodleComment = {
+      ...beefNoodleComment,
+      images: [],
+    };
+    const beefNoodleCommentStr = JSON.stringify(beefNoodleCommentWithoutImages);
     const filteredBeefNoodleComment = JSON.parse(
       beefNoodleCommentStr
     ) as BeefNoodleCommentLocalStorage;
-
     if (Object.keys(filteredBeefNoodleComment).length < 3) return;
+    // 這三個會有預設值，所以如果只有存這三個，代表使用者沒輸入
     if (
       Object.keys(filteredBeefNoodleComment).length === 3 &&
       filteredBeefNoodleComment.images.length === 0 &&

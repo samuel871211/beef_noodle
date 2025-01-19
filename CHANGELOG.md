@@ -4,6 +4,12 @@
 - img cache
 - firestore cache(?
 
+## 0.21.1 (2025-01-18)
+
+### feat
+
+- `localStorage` 不存圖片
+
 ## 0.21.0 (2024-11-16)
 
 ### feat
