@@ -39,6 +39,7 @@ import type {
   BeefNoodleComment,
   BeefNoodleCommentFirestore,
   BeefNoodleCommentForm,
+  // BeefNoodleCommentJSON,
   BeefNoodleCommentLocalStorage,
 } from "../../types";
 import ImageDialogCarousel from "../../components/ImageDialogCarousel";
@@ -46,8 +47,10 @@ import {
   auth,
   googleAuthProvider,
   beefNoodleCommentsCollectionRef,
+  // getAllBeefNoodleComments,
 } from "../../utils/firebase";
-import { useAllBeefNoodleComments } from "../../hooks/useBeefNoodleComments";
+// import type { GetStaticProps } from "next";
+import { beefNoodleComments } from "../../constants/beefNoodleComments";
 
 // Stateless vars declare.
 const beefNoodleCommentKey = "beefNoodleComment";
@@ -241,7 +244,7 @@ const tableScroll: TableProps<BeefNoodleComment>["scroll"] = {
   x: columns.map<number>((c) => c.width as number).reduce((a, b) => a + b, 0),
   y: "calc(100 * var(--vh) - 64px - 56px)",
 };
-const fallbackData: BeefNoodleComment[] = [];
+// const fallbackData: BeefNoodleComment[] = [];
 function getYYYYMMDD(inputDate: BeefNoodleCommentForm["visitDate"]) {
   const year = inputDate.year();
   const month = String(inputDate.month() + 1).padStart(2, "0");
@@ -279,10 +282,25 @@ async function getStorageFolderName(inputFolderName: string): Promise<string> {
   return getStorageFolderName(`${YYYYMMDD}_${index + 1}`);
 }
 
+// type Props = { beefNoodleCommentsJSON: BeefNoodleCommentJSON[] }
+// export const getStaticProps: GetStaticProps<Props> = async () => {
+//   const beefNoodleComments = await getAllBeefNoodleComments();
+//   const beefNoodleCommentsJSON = beefNoodleComments.map(b => ({
+//     ...b,
+//     visitDate: b.visitDate.valueOf()
+//   }))
+//   return { props: { beefNoodleCommentsJSON } };
+// }
+
 export default function List() {
+  // const { beefNoodleCommentsJSON } = props;
+  // const beefNoodleComments: BeefNoodleComment[] = useMemo(
+  //   () => beefNoodleCommentsJSON.map(b => ({ ...b, visitDate: new Date(b.visitDate) })),
+  //   [beefNoodleCommentsJSON]
+  // )
   const [isLogged, toggleIsLogged] = useState(false);
-  const { data, mutate } = useAllBeefNoodleComments();
-  const beefNoodleComments = data || fallbackData;
+  // const { data, mutate } = useAllBeefNoodleComments();
+  // const beefNoodleComments = data || fallbackData;
   const [commentModalOpen, toggleCommentModalOpen] = useState(false);
   const [beefNoodleCommentFormIns] = Form.useForm<BeefNoodleCommentForm>();
   const [addCommentLoading, toggleAddCommentLoading] = useState(false);
@@ -362,7 +380,7 @@ export default function List() {
     await addDoc(beefNoodleCommentsCollectionRef, comment)
       .then(() => {
         notificationIns.success({ message: "新增評論成功" });
-        mutate(beefNoodleComments, { revalidate: true });
+        // mutate(beefNoodleComments, { revalidate: true });
         beefNoodleCommentFormIns.resetFields();
         localStorage.removeItem(beefNoodleCommentKey);
       })

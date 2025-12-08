@@ -25,8 +25,9 @@ import {
 } from "@ant-design/icons";
 import Share from "../components/Share";
 import Head from "next/head";
-import { useAllBeefNoodleComments } from "../hooks/useBeefNoodleComments";
+// import { useAllBeefNoodleComments } from "../hooks/useBeefNoodleComments";
 import generateImageURL from "../utils/generateImageURL";
+import { beefNoodleComments } from "../constants/beefNoodleComments";
 
 let isOuterSwiperSliding = false;
 const { Title, Text } = Typography;
@@ -50,7 +51,7 @@ const innerModules: SwiperOptions["modules"] = [Pagination];
 
 const DraggableCarousel: FC = () => {
   const [outerSwiperOk, toggleOuterSwiperOk] = useState(false);
-  const { data: beefNoodleComments } = useAllBeefNoodleComments();
+  // const { data: beefNoodleComments } = useAllBeefNoodleComments();
   return (
     <ConfigProvider theme={theme}>
       <Head>
